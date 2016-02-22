@@ -1,17 +1,20 @@
 from __future__ import division
 import random
-import gwarped_exp as gwe
+from limix_lsf import clusterrun
+from limix_lsf.clusterrun import ClusterRun
+from limix_exp import get_workspace
 from tabulate import tabulate
 from os.path import join
-import humanfriendly as hf
+from humanfriendly import format_size
+from humanfriendly import parse_size
 import limix_util as lu
-import cluster
 import task
 import job
 import config
 import os
+from limix_util.cached import Cached, cached
 
-class Experiment(lu.cached.Cached):
+class Experiment(Cached):
     """docstring for Experiment"""
     def __init__(self, workspace_id, experiment_id):
         super(Experiment, self).__init__()
@@ -39,17 +42,15 @@ class Experiment(lu.cached.Cached):
         jobs = self.get_jobs()
         runids = set([j.brunid for j in jobs if j.submitted])
         for ri in runids:
-            cluster.load_cluster_run(ri).kill()
+            clusterrun.load(ri).kill()
 
     @property
     def job_memory(self):
-        from humanfriendly import format_size
         nbytes = int(round(self._job_megabytes * 1024. * 1024.))
         return format_size(nbytes)
 
     @job_memory.setter
     def job_memory(self, siz):
-        from humanfriendly import parse_size
         nbytes = parse_size(siz)
         self._job_megabytes = int(round(nbytes / 1024. / 1024.))
 
@@ -65,13 +66,13 @@ class Experiment(lu.cached.Cached):
     def get_task(self, task_id):
         return self._get_tasks()[task_id]
 
-    @lu.cached.cached
+    @cached
     def _get_task_results(self):
         fpath = join(self.folder, 'result')
-        force_cache = gwe.get_workspace(self._workspace_id).force_cache
+        force_cache = get_workspace(self._workspace_id).force_cache
         return task.collect_task_results(fpath, force_cache=force_cache)
 
-    @lu.cached.cached
+    @cached
     def get_task_results(self):
         return self._get_task_results().values()
 
@@ -96,7 +97,7 @@ class Experiment(lu.cached.Cached):
     def split_folder(self, jobid):
         return str(int(jobid/1000))
 
-    @lu.cached.cached
+    @cached
     def _get_tasks(self):
         fpath = join(self.folder, 'tasks.pkl')
         return task.load_tasks(fpath, verbose=True)
@@ -214,11 +215,11 @@ class Experiment(lu.cached.Cached):
             fp = join(self.folder, '.init_jobs_files_generated')
             lu.path_.touch(fp)
 
-    @lu.cached.cached
+    @cached
     def get_job(self, jobid):
         return job.load_job(self.job_path(jobid))
 
-    @lu.cached.cached
+    @cached
     def get_jobs(self):
         folder = join(self.folder, 'job')
         jobs = job.collect_jobs(folder)
@@ -236,7 +237,7 @@ class Experiment(lu.cached.Cached):
 
     def resubmit(self, jobid):
         job = self.get_job(jobid)
-        cr = cluster.load_cluster_run(self.runid)
+        cr = clusterrun.load(self.runid)
         cr.resubmit(job.bjobid)
 
     def submit_jobs(self, dryrun, requests=None):
@@ -245,7 +246,7 @@ class Experiment(lu.cached.Cached):
         myrand.shuffle(jobs)
 
         title = '/%s/%s' % (self._workspace_id, self._experiment_id)
-        cmd = cluster.ClusterRun(title)
+        cmd = ClusterRun(title)
         cmd.memory = self.job_memory
         cmd.mkl_nthreads = self.nthreads
         cmd.nprocs = self.nthreads
@@ -325,8 +326,8 @@ class Experiment(lu.cached.Cached):
                 req_memory = max(req_memories)
             else:
                 req_memory = None
-            table.append(['max used memory', hf.format_size(max_memory) if max_memory is not None else 'n/a'])
-            table.append(['max req. memory', hf.format_size(req_memory) if req_memory is not None else 'n/a'])
+            table.append(['max used memory', format_size(max_memory) if max_memory is not None else 'n/a'])
+            table.append(['max req. memory', format_size(req_memory) if req_memory is not None else 'n/a'])
 
             msg = tabulate(table)
 
