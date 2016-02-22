@@ -121,7 +121,7 @@ def setup_package():
     filename = os.path.join(dirname, 'limix_exp', 'version.py')
     write_version_py(VERSION, ISRELEASED, filename='limix_exp/version.py')
 
-    build_requires = ['limix_util']
+    build_requires = ['limix_util', 'limix_lsf']
 
     metadata = dict(
         name='limix-exp',
@@ -130,7 +130,10 @@ def setup_package():
         test_suite='setup.get_test_suite',
         packages=['limix_exp'],
         install_requires=build_requires,
-        setup_requires=build_requires
+        setup_requires=build_requires,
+        entry_points={
+            'console_scripts': ['arauto = limix_exp.arauto:entry_point']
+        }
     )
 
     run_build = parse_setuppy_commands()

@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 import re
 import inspect
 import os
@@ -5,8 +6,10 @@ from os.path import join
 import config
 from experiment import Experiment
 import json
-import cluster
+from limix_util import BeginEnd
+import limix_lsf
 import imp
+import shutil
 
 _workspaces = dict()
 def get_workspace(workspace_id):
@@ -40,23 +43,15 @@ class Workspace(object):
     def __init__(self, workspace_id):
         super(Workspace, self).__init__()
         self._workspace_id = workspace_id
-
-        # d = args_definition(self._call_job, self._call_runner, self._call_task)
-        # self._parser = d[0]
-        # self._job_parser = d[1]
-        # self._runner_parser = d[2]
-        # self._task_parser = d[3]
         self._script_filepath = None
         self._experiments = dict()
         self.force_cache = False
 
     def rm_experiment(self, experiment_id):
-        import shutil
-        import limix_util as lu
         e = self.get_experiment(experiment_id)
         e.kill_bjobs()
         if os.path.exists(e.folder):
-            with lu.BeginEnd('Removing folder'):
+            with BeginEnd('Removing folder'):
                 shutil.rmtree(e.folder)
 
     def get_properties(self):
@@ -110,30 +105,20 @@ class Workspace(object):
 
     def _auto_run(self, script_filepath, args):
 
-        from argparse import ArgumentParser
-        import shutil
-
         p = ArgumentParser()
         p.add_argument('--dryrun', dest='dryrun', action='store_true')
         p.add_argument('--no_dryrun', dest='dryrun', action='store_false')
-        # p.add_argument('--parallel', dest='parallel', action='store_true')
-        # p.add_argument('--no_parallel', dest='parallel', action='store_false')
         p.set_defaults(dryrun=False, parallel=True)
 
         args = p.parse_args(args)
 
         lista = self._get_generate_tasks(script_filepath)
         for (experiment_id, func) in lista:
-            import sys
-            print 'workspace 1'; sys.stdout.flush()
             exp = self.get_experiment(experiment_id)
-            print 'workspace 2'; sys.stdout.flush()
             func(exp)
-            print 'workspace 3'; sys.stdout.flush()
 
             try:
                 exp.submit_jobs(args.dryrun)
-                print 'workspace 4'; sys.stdout.flush()
             except KeyboardInterrupt:
                 shutil.rmtree(exp.folder)
                 raise
@@ -141,21 +126,7 @@ class Workspace(object):
             if args.dryrun:
                 shutil.rmtree(exp.folder)
 
-            # if not self.get_experiment(experiment_id).exists():
-            #     self._do_runner(experiment_id, func,
-            #                     args.dryrun, args.parallel)
-
-
-    # def _do_runner(self, experiment_id, auto_run_func, dryrun, parallel):
-    #     exp = self.get_experiment(experiment_id)
-    #     exp.script_filepath = self._script_filepath
-    #     (njobs, memory) = auto_run_func(exp)
-    #     # args = ['runner', '--njobs', str(njobs), '--memory', memory]
-    #     # args += ['--dryrun', dryrun, '--parallel', parallel]
-    #     exp.submit_jobs(njobs, memory, dryrun, parallel)
-
     def remove(self, experiment_id, jobs_too=False):
-        import shutil
         if experiment_id is None:
             print('Nothing to remove.')
             return
@@ -167,23 +138,16 @@ class Workspace(object):
 
         if jobs_too:
             bgroup = '/%s/%s' % (self._workspace_id, experiment_id)
-            if cluster.exists(bgroup):
-                cluster.kill_group(bgroup, True)
+            if exists(bgroup):
+                limix_lsf.util.kill_group(bgroup, True)
 
     def _call_job(self, args):
         experiment_id = args.experiment_id
         (experiment_id, auto_run_func) = self._get_generate_tasks(experiment_id)
         exp = self.get_experiment(experiment_id)
         exp.script_filepath = self._script_filepath
-        (njobs, memory) = auto_run_func(exp)
+        auto_run_func(exp)
         exp.start(check_existence=False)
-        # exp.start(['task', '--njobs', str(njobs), '--memory', memory])
-
-    # def _call_runner(self, args):
-    #     lista = self._get_generate_tasks()
-    #     for (experiment_id, func) in lista:
-    #         if not self.get_experiment(experiment_id).exists():
-    #             self._do_runner(self._script_filepath, experiment_id, func)
 
     def _get_generate_tasks(self, script_filepath, experiment_id=None):
         script_name = os.path.basename(script_filepath)
@@ -202,11 +166,6 @@ class Workspace(object):
                     return exp_name, func[1]
 
         return lista
-
-    def _call_task(self, args):
-        print('task')
-        pass
-
 
 def _get_auto_runs_map(script_filepath):
     script_name = os.path.basename(script_filepath)
