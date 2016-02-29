@@ -14,7 +14,7 @@ else:
     conda_present = True
 
 try:
-    import numpy as np
+    import numpy
 except ImportError:
     print("Error: numpy package couldn't be found." +
           " Please, install it so I can proceed.")
