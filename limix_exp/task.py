@@ -1,10 +1,13 @@
-import workspace
-from limix_exp import get_experiment
-import limix_util as lu
-from limix_util.pickle_ import SlotPickleMixin
-from limix_util.pickle_ import PickleByName
-from limix_util.misc import BeginEnd
+from __future__ import absolute_import
 import os
+from . import workspace
+from limix_misc.pickle_ import pickle, unpickle, pickle_merge
+from limix_misc.pickle_ import SlotPickleMixin
+from limix_misc.pickle_ import PickleByName
+from limix_misc.report import BeginEnd
+from limix_misc.scalar import isfloat
+from limix_misc.str_ import summarize
+
 from tabulate import tabulate
 
 def extract_successes_and_failures(tasks):
@@ -42,7 +45,6 @@ class Task(PickleByName):
         self.task_id = int(task_id)
         self.workspace_id = workspace_id
         self.experiment_id = experiment_id
-        self._signature_only_attrs = set()
 
     def run(self):
         e = workspace.get_experiment(self.workspace_id, self.experiment_id)
@@ -53,7 +55,7 @@ class Task(PickleByName):
         return self.get_result() is not None
 
     def get_result(self):
-        e = get_experiment(self.workspace_id, self.experiment_id)
+        e = workspace.get_experiment(self.workspace_id, self.experiment_id)
         if e is None:
             return None
 
@@ -76,7 +78,7 @@ class TaskResult(SlotPickleMixin):
         self._methods = set()
 
     def get_task(self):
-        e = get_experiment(self.workspace_id, self.experiment_id)
+        e = workspace.get_experiment(self.workspace_id, self.experiment_id)
         return e.get_task(self.task_id)
 
     def elapsed(self, method):
@@ -114,7 +116,7 @@ def load_tasks(fpath, verbose=True):
                 print "Exist %s" % fpath
         else:
             print "Does not exist %s" % fpath
-        tasks = lu.pickle_.unpickle(fpath)
+        tasks = unpickle(fpath)
         if verbose:
             print('   %d tasks found  ' % len(tasks))
     return tasks
@@ -122,31 +124,31 @@ def load_tasks(fpath, verbose=True):
 def store_tasks(tasks, fpath):
     if os.path.exists(fpath):
         return
-    lu.pickle_.pickle({t.task_id:t for t in tasks}, fpath)
+    pickle({t.task_id:t for t in tasks}, fpath)
 
 def load_task_args(fpath):
-    return lu.pickle_.unpickle(fpath)
+    return unpickle(fpath)
 
 def store_task_args(task_args, fpath):
     if os.path.exists(fpath):
         return
-    lu.pickle_.pickle(task_args, fpath)
+    pickle(task_args, fpath)
 
 def collect_task_results(folder, force_cache=False):
     if force_cache:
         fpath = os.path.join(folder, 'all.pkl')
     else:
         with BeginEnd('Merging task results'):
-            fpath = lu.pickle_.pickle_merge(folder)
+            fpath = pickle_merge(folder)
     if fpath is None:
         return fpath
     with BeginEnd('Unpickling merged task results'):
-        out = lu.pickle_.unpickle(fpath)
+        out = unpickle(fpath)
     return out
 
 def store_task_results(task_results, fpath):
     with BeginEnd('Storing task results'):
-        lu.pickle_.pickle({tr.task_id:tr for tr in task_results}, fpath)
+        pickle({tr.task_id:tr for tr in task_results}, fpath)
         print('   %d task results stored   ' % len(task_results))
 
 def tasks_summary(tasks):
@@ -171,7 +173,7 @@ def tasks_summary(tasks):
 
     for a in args:
         d[a] = list(d[a])
-        d[a].sort(key= lambda x: float(x) if lu.isfloat(x) else x)
+        d[a].sort(key= lambda x: float(x) if isfloat(x) else x)
 
-    table = zip(d.keys(), [lu.str_.summarize(v) for v in d.values()])
+    table = zip(d.keys(), [summarize(v) for v in d.values()])
     return '*** Task summary ***\n' + tabulate(table)

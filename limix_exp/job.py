@@ -1,11 +1,10 @@
 import numpy as np
 from limix_lsf import clusterrun
-import limix_util as lu
-from limix_util import BeginEnd
-from limix_util.cached import Cached, cached
+from limix_misc import pickle_
+from limix_misc.report import BeginEnd
+from hcache import Cached, cached
 
 class Job(Cached):
-    """docstring for Job"""
     def __init__(self, workspace_id, experiment_id, jobid):
         super(Job, self).__init__()
         self.jobid = int(jobid)
@@ -97,20 +96,20 @@ class Job(Cached):
 
 def store_jobs(jobs, fpath):
     with BeginEnd('Storing jobs'):
-        lu.pickle_.pickle({t.jobid:t for t in jobs}, fpath)
+        pickle_.pickle({t.jobid:t for t in jobs}, fpath)
         print('   %d jobs stored   ' % len(jobs))
 
 def store_job(job, fpath):
-    lu.pickle_.pickle(job, fpath)
+    pickle_.pickle(job, fpath)
 
 def load_job(fpath):
-    return lu.pickle_.unpickle(fpath)
+    return pickle_.unpickle(fpath)
 
 def collect_jobs(folder):
     with BeginEnd('Merging jobs'):
-        fpath = lu.pickle_.pickle_merge(folder)
+        fpath = pickle_.pickle_merge(folder)
     if fpath is None:
         return None
     with BeginEnd('Unpickling merged jobs'):
-        out = lu.pickle_.unpickle(fpath)
+        out = pickle_.unpickle(fpath)
     return out

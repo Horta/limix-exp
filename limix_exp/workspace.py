@@ -1,15 +1,17 @@
+from __future__ import absolute_import
 from argparse import ArgumentParser
 import re
 import inspect
 import os
 from os.path import join
-import config
-from experiment import Experiment
 import json
-from limix_util import BeginEnd
-import limix_lsf
 import imp
 import shutil
+from . import config
+from experiment import Experiment
+from limix_misc.report import BeginEnd
+from limix_misc.inspect_ import fetch_classes
+import limix_lsf
 
 _workspaces = dict()
 def get_workspace(workspace_id):
@@ -39,7 +41,6 @@ def get_workspace_ids():
     return [f for f in files if os.path.isdir(f)]
 
 class Workspace(object):
-    """docstring for Workspace"""
     def __init__(self, workspace_id):
         super(Workspace, self).__init__()
         self._workspace_id = workspace_id
@@ -57,6 +58,26 @@ class Workspace(object):
     def get_properties(self):
         with open(join(self.folder, 'properties.json')) as json_file:
             return json.load(json_file)
+
+    def get_plot_class(self, name):
+        return self._get_plot_classes_map()[name]
+
+    def _get_plot_classes_map(self):
+        import ipdb; ipdb.set_trace()
+        f = join(self.folder, 'plot.json')
+        if not os.path.exists(f):
+            return []
+        fpaths = []
+        with open(f) as json_file:
+            fpaths = json.load(json_file)
+            fpaths = [str(fpath) for fpath in fpaths]
+
+        plot_classes_map = dict()
+        for fp in fpaths:
+            clss = fetch_classes(fp, '.*Plot')
+            for clsi in clss:
+                plot_classes_map[clsi.__name__] = clsi
+        return plot_classes_map
 
     @property
     def folder(self):
@@ -85,9 +106,9 @@ class Workspace(object):
             auto_runs_map.update(_get_auto_runs_map(fp))
         return auto_runs_map
 
-    def get_dataset(self, dataset_id):
-        import dataset
-        return dataset.Dataset(self._workspace_id, dataset_id)
+    @property
+    def dataset_folder(self):
+        return os.path.join(self.folder, 'dataset')
 
     def _auto_run_filepaths(self):
         f = join(self.folder, 'auto_run.json')
@@ -107,7 +128,7 @@ class Workspace(object):
 
         p = ArgumentParser()
         p.add_argument('--dryrun', dest='dryrun', action='store_true')
-        p.add_argument('--no_dryrun', dest='dryrun', action='store_false')
+        p.add_argument('--no-dryrun', dest='dryrun', action='store_false')
         p.set_defaults(dryrun=False, parallel=True)
 
         args = p.parse_args(args)

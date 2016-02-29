@@ -1,163 +1,85 @@
+from __future__ import division, print_function
 import os
-if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 import sys
-import imp
-import textwrap
+from setuptools import setup, find_packages
+
+PKG_NAME = 'limix_exp'
+VERSION  = '0.1.0'
 
 try:
-    imp.find_module('numpy')
+    from distutils.command.bdist_conda import CondaDistribution
 except ImportError:
-    print('Fatal: could not import numpy. Please, make sure it is installed.')
+    conda_present = False
+else:
+    conda_present = True
+
+try:
+    import numpy as np
+except ImportError:
+    print("Error: numpy package couldn't be found." +
+          " Please, install it so I can proceed.")
     sys.exit(1)
 
-MAJOR               = 0
-MINOR               = 1
-MICRO               = 0
-ISRELEASED          = False
-VERSION             = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
-if sys.version_info[0] >= 3:
-    import builtins
-else:
-    import __builtin__ as builtins
-
-# This is a bit hackish: we are setting a global variable so that the main
-# limix-exp __init__ can detect if it is being loaded by the setup routine, to
-# avoid attempting to load components that aren't built yet.  While ugly, it's
-# a lot more robust than what was previously being used.
-builtins.__LIMIX_EXP_SETUP__ = True
-
-def parse_setuppy_commands():
-    """Check the commands and respond appropriately.  Disable broken commands.
-    Return a boolean value for whether or not to run the build or not (avoid
-    parsing Cython and template files if False).
-    """
-    if len(sys.argv) < 2:
-        # User forgot to give an argument probably, let setuptools handle that.
-        return True
-
-    info_commands = ['--help-commands', '--name', '--version', '-V',
-         '--fullname', '--author', '--author-email',
-         '--maintainer', '--maintainer-email', '--contact',
-         '--contact-email', '--url', '--license', '--description',
-         '--long-description', '--platforms', '--classifiers',
-         '--keywords', '--provides', '--requires', '--obsoletes']
-    # Add commands that do more than print info, but also don't need Cython and
-    # template parsing.
-    info_commands.extend(['egg_info', 'install_egg_info', 'rotate'])
-
-    for command in info_commands:
-        if command in sys.argv[1:]:
-            return False
-
-    good_commands = ('develop', 'sdist', 'build', 'build_ext', 'build_py',
-                 'build_clib', 'build_scripts', 'bdist_wheel', 'bdist_rpm',
-                 'bdist_wininst', 'bdist_msi', 'bdist_mpkg')
-
-    for command in good_commands:
-        if command in sys.argv[1:]:
-            return True
-
-    # The following commands are supported, but we need to show more
-    # useful messages to the user
-    if 'install' in sys.argv[1:]:
-        print(textwrap.dedent("""
-            Note: if you need reliable uninstall behavior, then install
-            with pip instead of using `setup.py install`:
-              - `pip install .`       (from a git repo or downloaded source
-                                       release)
-              - `pip install limix-exp`   (last limix-exp release on PyPi)
-            """))
-        return True
-
-    if '--help' in sys.argv[1:] or '-h' in sys.argv[1]:
-        print(textwrap.dedent("""
-        limix-exp-specific help
-        -------------------
-        To install limix-exp from here with reliable uninstall, we recommend
-        that you use `pip install .`. To install the latest limix-exp release
-        from PyPi, use `pip install limix-exp`.
-        Setuptools commands help
-        ------------------------
-        """))
-        return False
-
-    return True
+try:
+    import matplotlib
+except ImportError:
+    print("Error: matplotlib package couldn't be found." +
+          " Please, install it so I can proceed.")
+    sys.exit(1)
 
 def get_test_suite():
     from unittest import TestLoader
-    return TestLoader().discover('limix_exp')
+    return TestLoader().discover(PKG_NAME)
 
-def configuration(parent_package='', top_path=None):
-    from numpy.distutils.misc_util import Configuration
+def write_version():
+    cnt = """
+# THIS FILE IS GENERATED FROM %(package_name)s SETUP.PY
+version = '%(version)s'
+"""
+    filename = os.path.join(PKG_NAME, 'version.py')
+    a = open(filename, 'w')
+    try:
+        a.write(cnt % {'version': VERSION,
+                       'package_name': PKG_NAME.upper()})
+    finally:
+        a.close()
 
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(ignore_setup_xxx_py=True,
-                       assume_default_configuration=True,
-                       delegate_options_to_subpackages=True,
-                       quiet=True)
-
-    config.add_subpackage('limix_exp')
-
-    config.get_version('limix_exp/version.py') # sets config.version
-
-    return config
+def get_version_filename(package_name):
+    filename = os.path.join(package_name, 'version.py')
+    return filename
 
 def setup_package():
-    path = os.path.realpath(__file__)
-    dirname = os.path.dirname(path)
-    mod = imp.load_source('__init__',
-                          os.path.join(dirname, 'build_util', '__init__.py'))
-    write_version_py = mod.write_version_py
-    get_version_info = mod.get_version_info
-    generate_cython = mod.generate_cython
-
     src_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     old_path = os.getcwd()
     os.chdir(src_path)
     sys.path.insert(0, src_path)
 
-    # Rewrite the version file everytime
-    filename = os.path.join(dirname, 'limix_exp', 'version.py')
-    write_version_py(VERSION, ISRELEASED, filename='limix_exp/version.py')
+    write_version()
 
-    build_requires = ['limix_util', 'limix_lsf']
+    install_requires = ['tabulate', 'limix_misc', 'humanfriendly', 'limix_plot',
+                        'slugify', 'limix_lsf', 'hcache']
+    setup_requires = []
 
     metadata = dict(
-        name='limix-exp',
-        maintainer = "Limix Developers",
-        maintainer_email = "horta@ebi.ac.uk",
+        name=PKG_NAME,
+        maintainer="Limix Developers",
+        version=VERSION,
+        maintainer_email="horta@ebi.ac.uk",
         test_suite='setup.get_test_suite',
-        packages=['limix_exp'],
-        install_requires=build_requires,
-        setup_requires=build_requires,
+        packages=find_packages(),
+        license="BSD",
+        url='http://pmbio.github.io/limix/',
+        install_requires=install_requires,
+        setup_requires=setup_requires,
+        zip_safe=True,
         entry_points={
             'console_scripts': ['arauto = limix_exp.arauto:entry_point']
         }
     )
 
-    run_build = parse_setuppy_commands()
-
-    from setuptools import setup
-
-    if run_build:
-        from numpy.distutils.core import setup
-        metadata['configuration'] = configuration
-    else:
-        if len(sys.argv) >= 2 and sys.argv[1] == 'bdist_wheel':
-            # bdist_wheel needs setuptools
-            import setuptools
-        from numpy.distutils.core import setup
-
-        cwd = os.path.abspath(os.path.dirname(__file__))
-        if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
-            # Generate Cython sources, unless building from source release
-            generate_cython()
-
-        # Version number is added to metadata inside configuration() if build
-        # is run.
-        metadata['version'] = get_version_info(VERSION, ISRELEASED,
-                                               filename=filename)[0]
+    if conda_present:
+        metadata['distclass'] = CondaDistribution
+        metadata['conda_buildnum'] = 1
 
     try:
         setup(**metadata)

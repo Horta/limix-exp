@@ -1,21 +1,21 @@
 from __future__ import division
-import random
-from limix_lsf import clusterrun
-from limix_lsf.clusterrun import ClusterRun
-from limix_exp import get_workspace
-from tabulate import tabulate
+import os
 from os.path import join
+import random
 from humanfriendly import format_size
 from humanfriendly import parse_size
-import limix_util as lu
-import task
-import job
-import config
-import os
-from limix_util.cached import Cached, cached
+from tabulate import tabulate
+from limix_lsf import clusterrun
+from limix_lsf.clusterrun import ClusterRun
+from limix_misc import path_
+from limix_misc.path_ import make_sure_path_exists
+from limix_misc.report import BeginEnd, ProgressBar
+from hcache import Cached, cached
+from . import task
+from . import job
+from . import config
 
 class Experiment(Cached):
-    """docstring for Experiment"""
     def __init__(self, workspace_id, experiment_id):
         super(Experiment, self).__init__()
         self._workspace_id = workspace_id
@@ -69,6 +69,7 @@ class Experiment(Cached):
     @cached
     def _get_task_results(self):
         fpath = join(self.folder, 'result')
+        from limix_exp import get_workspace
         force_cache = get_workspace(self._workspace_id).force_cache
         return task.collect_task_results(fpath, force_cache=force_cache)
 
@@ -91,7 +92,7 @@ class Experiment(Cached):
     @property
     def figures_folder(self):
         f = join(self.folder, 'figs')
-        lu.path_.make_sure_path_exists(f)
+        make_sure_path_exists(f)
         return f
 
     def split_folder(self, jobid):
@@ -116,7 +117,7 @@ class Experiment(Cached):
     def define_task_args(self, task_args):
         raise NotImplementedError
 
-    def generate_tasks(self, workspace_id):
+    def generate_tasks(self, workspace_folder, workspace_id):
         raise NotImplementedError
 
     def generate_jobs(self, workspace_id):
@@ -138,11 +139,11 @@ class Experiment(Cached):
         task.store_tasks(tasks, fpath)
 
     def _store_jobs(self, jobs):
-        with lu.BeginEnd('Storing jobs'):
-            pb = lu.ProgressBar(len(jobs))
+        with BeginEnd('Storing jobs'):
+            pb = ProgressBar(len(jobs))
             for (i, j) in enumerate(jobs):
                 fp = self.job_path(j.jobid)
-                lu.path_.make_sure_path_exists(os.path.dirname(fp))
+                make_sure_path_exists(os.path.dirname(fp))
                 job.store_job(j, fp)
                 pb.update(i+1)
             pb.finish()
@@ -173,7 +174,7 @@ class Experiment(Cached):
         if not dryrun:
             job.store_job(job_, self.job_path(job_.jobid))
             fp = self.task_result_path(job_.jobid)
-            lu.path_.make_sure_path_exists(os.path.dirname(fp))
+            make_sure_path_exists(os.path.dirname(fp))
             task.store_task_results(task_results, fp)
 
     @property
@@ -182,7 +183,7 @@ class Experiment(Cached):
         return os.path.exists(fp)
 
     def finish_setup(self):
-        lu.path_.make_sure_path_exists(self.folder)
+        make_sure_path_exists(self.folder)
 
         ta = task.TaskArgs()
         self.define_task_args(ta)
@@ -191,8 +192,10 @@ class Experiment(Cached):
         if self.tasks_setup_done:
             tasks = self.get_tasks()
         else:
-            with lu.BeginEnd('Generating tasks'):
-                tasks = self.generate_tasks(self._workspace_id)
+            with BeginEnd('Generating tasks'):
+                from limix_exp import get_workspace
+                folder = get_workspace(self._workspace_id).dataset_folder
+                tasks = self.generate_tasks(folder, self._workspace_id)
                 print('   %d generated tasks   ' % len(tasks))
             self._store_tasks(tasks)
 
@@ -208,12 +211,12 @@ class Experiment(Cached):
             f.write(src_code)
 
         if not self.are_init_jobs_files_generated:
-            with lu.BeginEnd('Generating jobs'):
+            with BeginEnd('Generating jobs'):
                 jobs = self.generate_jobs(self._workspace_id)
                 print('   %d generated jobs   ' % len(jobs))
             self._store_jobs(jobs)
             fp = join(self.folder, '.init_jobs_files_generated')
-            lu.path_.touch(fp)
+            path_.touch(fp)
 
     @cached
     def get_job(self, jobid):
@@ -261,8 +264,8 @@ class Experiment(Cached):
             if dryrun:
                 a += ['--dryrun']
             else:
-                a += ['--no_dryrun']
-            a += ['--no_progress']
+                a += ['--no-dryrun']
+            a += ['--no-progress']
             cmd.add(a)
 
         self.runid = cmd.run(dryrun=dryrun)
@@ -277,7 +280,7 @@ class Experiment(Cached):
 
     def _store_task_results(self, folder_split, jobid, task_results):
         base = join(self.folder, 'result', folder_split)
-        lu.path_.make_sure_path_exists(base)
+        make_sure_path_exists(base)
         fpath = join(base, '%d.pkl' % int(jobid))
         task.store_task_results(task_results, fpath)
 
@@ -287,7 +290,7 @@ class Experiment(Cached):
 
 
     def __str__(self):
-        with lu.BeginEnd('Compiling info table'):
+        with BeginEnd('Compiling info table'):
             table = []
             table.append(['# jobs', str(self.njobs)])
             table.append(['# tasks', str(self.ntasks)])

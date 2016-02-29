@@ -1,12 +1,11 @@
 from limix_exp.task import TaskResult
 from numpy import asarray
 
-class PowerTaskResult(TaskResult):
+class QTLTaskResult(TaskResult):
     __slots__  = ['_pv']
 
-    """docstring for PowerTaskResult"""
     def __init__(self, workspace_id, experiment_id, task_id):
-        super(PowerTaskResult, self).__init__(workspace_id, experiment_id,
+        super(QTLTaskResult, self).__init__(workspace_id, experiment_id,
                                               task_id)
         self._pv = dict()
 
