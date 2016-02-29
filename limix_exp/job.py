@@ -1,7 +1,8 @@
 import numpy as np
 from limix_lsf import clusterrun
 from limix_misc import pickle_
-from limix_misc.report import BeginEnd
+from limix_misc.report import BeginEnd, ProgressBar
+from limix_misc.time_ import Timer
 from hcache import Cached, cached
 
 class Job(Cached):
@@ -54,10 +55,10 @@ class Job(Cached):
         task_results = []
 
         if progress:
-            p = lu.ProgressBar(len(tasks))
+            p = ProgressBar(len(tasks))
 
         for (i, task) in enumerate(tasks):
-            with lu.time_.Timer() as timer:
+            with Timer() as timer:
                 tr = task.run()
             tr.total_elapsed = timer.elapsed
             if progress:
