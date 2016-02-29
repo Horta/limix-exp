@@ -83,6 +83,10 @@ def do_submit_jobs(args, _):
         requests = requests.split(',')
     e.submit_jobs(args.dryrun, requests=requests)
 
+def do_work_info(args, _):
+    w = get_workspace(args.workspace_id)
+    print w
+
 def do_exp_info(args, _):
     e = get_experiment(args.workspace_id, args.experiment_id)
     print e
@@ -100,6 +104,10 @@ def entry_point():
 
     s = sub.add_parser('root')
     s.set_defaults(func=do_root)
+
+    s = sub.add_parser('work-info')
+    s.add_argument('workspace_id')
+    s.set_defaults(func=do_work_info)
 
     s = sub.add_parser('exp-info')
     s.add_argument('workspace_id')

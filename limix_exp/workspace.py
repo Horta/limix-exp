@@ -9,7 +9,7 @@ import imp
 import shutil
 from . import config
 from limix_misc.report import BeginEnd
-from limix_misc.inspect_ import fetch_classes
+from limix_misc.inspect_ import fetch_classes, fetch_functions
 import limix_lsf
 from .experiment import Experiment
 
@@ -63,7 +63,6 @@ class Workspace(object):
         return self._get_plot_classes_map()[name]
 
     def _get_plot_classes_map(self):
-        import ipdb; ipdb.set_trace()
         f = join(self.folder, 'plot.json')
         if not os.path.exists(f):
             return []
@@ -103,7 +102,8 @@ class Workspace(object):
         fps = self._auto_run_filepaths()
         auto_runs_map = dict()
         for fp in fps:
-            auto_runs_map.update(_get_auto_runs_map(fp))
+            funcs = fetch_functions(fp, r'^auto_run_.+$')
+            auto_runs_map.update([(f.func_name[9:], f) for f in funcs])
         return auto_runs_map
 
     @property
@@ -187,6 +187,47 @@ class Workspace(object):
                     return exp_name, func[1]
 
         return lista
+
+    def __str__(self):
+        from tabulate import tabulate
+
+        files = os.listdir(self.folder)
+        exp_ids = [f for f in files if (os.path.isdir(join(self.folder, f)) and
+                                        join(self.folder, f,
+                                             'generate_tasks.txt'))]
+
+        nerrs_ie = 0
+        nerrs_ke = 0
+        for ei in exp_ids:
+            try:
+                self.get_experiment(ei)
+            except ImportError:
+                nerrs_ie += 1
+            except KeyError:
+                nerrs_ke += 1
+
+    # with BeginEnd('Compiling info table'):
+        table = []
+        auto_run_fps = '\n'.join(self._auto_run_filepaths())
+        table.append(['auto_run files', auto_run_fps])
+        table.append(['# experiments', str(len(exp_ids))])
+
+
+        table.append(["# ImportError's", str(nerrs_ie)])
+        table.append(["# KeyError's", str(nerrs_ke)])
+
+        # table.append(['# tasks', str(self.ntasks)])
+        # bjobs_finished = [j.get_bjob() for j in self.get_jobs() if j.submitted and j.finished]
+        #
+        # nsub = sum([1 for j in self.get_jobs() if j.submitted])
+        # table.append(['# submitted jobs', str(nsub)])
+
+        msg = tabulate(table)
+
+        # if nfail > 0:
+        #     msg += '\nFailed jobs: ' + str(failed_jobids)
+        #     msg += '\n'
+        return msg
 
 def _get_auto_runs_map(script_filepath):
     script_name = os.path.basename(script_filepath)
