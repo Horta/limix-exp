@@ -18,12 +18,12 @@ def _fetch_filter(script_filepath):
         return _fetch_filter_file(script_filepath)
     return eval("lambda task: " + script_filepath)
 
-def do_root(**_):
+def do_root(_1, _2):
     print(config.root_dir())
 
 def do_see(args, rargs):
     from limix_plot.show import show
-    
+
     w = get_workspace(args.workspace_id)
     e = w.get_experiment(args.experiment_id)
     tasks = [task for task in e.get_tasks() if task.finished]
