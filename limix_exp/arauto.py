@@ -22,6 +22,8 @@ def do_root(**_):
     print(config.root_dir())
 
 def do_see(args, rargs):
+    from limix_plot.show import show
+    
     w = get_workspace(args.workspace_id)
     e = w.get_experiment(args.experiment_id)
     tasks = [task for task in e.get_tasks() if task.finished]
@@ -41,12 +43,12 @@ def do_see(args, rargs):
         group_by = None
 
     properties = w.get_properties()
-
     plot_cls = w.get_plot_class(args.plot_class_name)
     p = plot_cls(args.workspace_id, args.experiment_id, properties, tasks,
                  rargs)
     p.group_by = group_by
     p.plot()
+    show()
 
 def do_job_info(args, _):
     e = get_experiment(args.workspace_id, args.experiment_id)

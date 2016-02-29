@@ -69,9 +69,7 @@ class Experiment(Cached):
     @cached
     def _get_task_results(self):
         fpath = join(self.folder, 'result')
-        from limix_exp import get_workspace
-        force_cache = get_workspace(self._workspace_id).force_cache
-        return task.collect_task_results(fpath, force_cache=force_cache)
+        return task.collect_task_results(fpath, force_cache=False)
 
     @cached
     def get_task_results(self):
@@ -193,7 +191,7 @@ class Experiment(Cached):
             tasks = self.get_tasks()
         else:
             with BeginEnd('Generating tasks'):
-                from limix_exp import get_workspace
+                from .workspace import get_workspace
                 folder = get_workspace(self._workspace_id).dataset_folder
                 tasks = self.generate_tasks(folder, self._workspace_id)
                 print('   %d generated tasks   ' % len(tasks))
