@@ -1,14 +1,12 @@
 from __future__ import absolute_import
 import os
-from . import workspace
+from tabulate import tabulate
 from limix_misc.pickle_ import pickle, unpickle, pickle_merge
 from limix_misc.pickle_ import SlotPickleMixin
 from limix_misc.pickle_ import PickleByName
 from limix_misc.report import BeginEnd
 from limix_misc.scalar import isfloat
 from limix_misc.str_ import summarize
-
-from tabulate import tabulate
 
 def extract_successes_and_failures(tasks):
     methods = tasks[0].get_result().methods
@@ -27,7 +25,6 @@ def extract_successes_and_failures(tasks):
     return dict(nsucs=nsucs, nfails=nfails)
 
 class TaskArgs(SlotPickleMixin):
-    """docstring for TaskArgs"""
     def __init__(self):
         super(TaskArgs, self).__init__()
         self._names = []
@@ -39,7 +36,6 @@ class TaskArgs(SlotPickleMixin):
         return self._names
 
 class Task(PickleByName):
-    """docstring for Task"""
     def __init__(self, workspace_id, experiment_id, task_id):
         super(Task, self).__init__()
         self.task_id = int(task_id)
@@ -47,7 +43,8 @@ class Task(PickleByName):
         self.experiment_id = experiment_id
 
     def run(self):
-        e = workspace.get_experiment(self.workspace_id, self.experiment_id)
+        from .workspace import get_experiment
+        e = get_experiment(self.workspace_id, self.experiment_id)
         return e.do_task(self)
 
     @property
@@ -55,7 +52,8 @@ class Task(PickleByName):
         return self.get_result() is not None
 
     def get_result(self):
-        e = workspace.get_experiment(self.workspace_id, self.experiment_id)
+        from .workspace import get_experiment
+        e = get_experiment(self.workspace_id, self.experiment_id)
         if e is None:
             return None
 
@@ -65,7 +63,6 @@ class TaskResult(SlotPickleMixin):
     __slots__ = ['total_elapsed', 'workspace_id', 'experiment_id', 'task_id',
                  '_elapsed', '_error_status', '_error_msg', '_methods']
 
-    """docstring for TaskResult"""
     def __init__(self, workspace_id, experiment_id, task_id):
         super(TaskResult, self).__init__()
         self.total_elapsed = float('nan')
@@ -78,7 +75,8 @@ class TaskResult(SlotPickleMixin):
         self._methods = set()
 
     def get_task(self):
-        e = workspace.get_experiment(self.workspace_id, self.experiment_id)
+        from .workspace import get_experiment
+        e = get_experiment(self.workspace_id, self.experiment_id)
         return e.get_task(self.task_id)
 
     def elapsed(self, method):
@@ -153,6 +151,7 @@ def store_task_results(task_results, fpath):
 
 def tasks_summary(tasks):
     from collections import OrderedDict
+    from .workspace import get_experiment
 
     if len(tasks) == 0:
         return ''
@@ -160,7 +159,7 @@ def tasks_summary(tasks):
     wid = tasks[0].workspace_id
     eid = tasks[0].experiment_id
 
-    e = workspace.get_experiment(wid, eid)
+    e = get_experiment(wid, eid)
 
     args = e.get_task_args().get_names()
 

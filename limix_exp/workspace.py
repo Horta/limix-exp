@@ -8,10 +8,10 @@ import json
 import imp
 import shutil
 from . import config
-from experiment import Experiment
 from limix_misc.report import BeginEnd
 from limix_misc.inspect_ import fetch_classes
 import limix_lsf
+from .experiment import Experiment
 
 _workspaces = dict()
 def get_workspace(workspace_id):
