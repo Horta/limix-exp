@@ -64,9 +64,6 @@ class Workspace(object):
 
     def _get_plot_classes_map(self):
         f = join(self.folder, 'plot.json')
-        if not os.path.exists(f):
-            return []
-        fpaths = []
         with open(f) as json_file:
             fpaths = json.load(json_file)
             fpaths = [str(fpath) for fpath in fpaths]
