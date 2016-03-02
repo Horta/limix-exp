@@ -241,13 +241,14 @@ class Experiment(Cached):
         cr = clusterrun.load(self.runid)
         cr.resubmit(job.bjobid)
 
-    def submit_jobs(self, dryrun, requests=None):
+    def submit_jobs(self, dryrun, requests=None, queue=None):
         jobs = self.get_jobs()
         myrand = random.Random(937628)
         myrand.shuffle(jobs)
 
         title = '/%s/%s' % (self._workspace_id, self._experiment_id)
         cmd = ClusterRun(title)
+        cmd.queue = queue
         cmd.memory = self.job_memory
         cmd.mkl_nthreads = self.nthreads
         cmd.nprocs = self.nthreads

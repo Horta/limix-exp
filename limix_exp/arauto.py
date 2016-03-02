@@ -83,7 +83,7 @@ def do_submit_jobs(args, _):
     requests = args.requests
     if requests is not None:
         requests = requests.split(',')
-    e.submit_jobs(args.dryrun, requests=requests)
+    e.submit_jobs(args.dryrun, requests=requests, queue=args.queue)
 
 def do_work_info(args, _):
     w = get_workspace(args.workspace_id)
@@ -123,7 +123,7 @@ def entry_point():
     s = sub.add_parser('rm-exp')
     s.add_argument('workspace_id')
     s.add_argument('experiment_id')
-    s.set_defaults(func=do_rm_exp)
+    s.set_defaults(func=do_rm_exp, resubmit=False)
 
     s = sub.add_parser('run-job')
     s.add_argument('workspace_id')
@@ -143,6 +143,7 @@ def entry_point():
     s = sub.add_parser('submit-jobs')
     s.add_argument('workspace_id')
     s.add_argument('experiment_id')
+    s.add_argument('--queue', default=None)
     s.add_argument('--requests', default=None)
     s.add_argument('--dryrun', dest='dryrun', action='store_true')
     s.add_argument('--no-dryrun', dest='dryrun', action='store_false')
