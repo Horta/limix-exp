@@ -9,9 +9,10 @@ def _sort_key(k):
     return k
 
 class BasePlot(object):
-    def __init__(self):
+    def __init__(self, fig=None):
         self.tasks = []
         self.group_by = None
+        self._fig = fig
 
     def _setup_tasks_grouping(self):
         if self.group_by is not None:
@@ -21,7 +22,7 @@ class BasePlot(object):
     def plot(self):
         self._setup_tasks_grouping()
 
-        fig = plt.figure()
+        fig = plt.figure() if self._fig is None else self._fig
         if self.group_by:
             grid_plot(self.group_by, self.tasks,
                       self._plot_tasks, fig=fig)
@@ -32,7 +33,7 @@ class BasePlot(object):
     def plot_grouped(self):
         self._setup_tasks_grouping()
 
-        fig = plt.figure()
+        fig = plt.figure() if self._fig is None else self._fig
         if self.group_by:
 
             def callback(tasks, axis):
