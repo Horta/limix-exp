@@ -211,6 +211,8 @@ class Experiment(Cached):
         if not self.are_init_jobs_files_generated:
             with BeginEnd('Generating jobs'):
                 jobs = self.generate_jobs(self._workspace_id)
+                if len(jobs) == 0:
+                    raise Exception('No job has been generated.')
                 print('   %d generated jobs   ' % len(jobs))
             self._store_jobs(jobs)
             fp = join(self.folder, '.init_jobs_files_generated')
