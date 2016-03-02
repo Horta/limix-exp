@@ -78,6 +78,10 @@ def do_rm_exp(args, _):
     w = get_workspace(args.workspace_id)
     w.rm_experiment(args.experiment_id)
 
+def do_method_errors(args, _):
+    e = get_experiment(args.workspace_id, args.experiment_id)
+    e.method_errors()
+
 def do_submit_jobs(args, _):
     e = get_experiment(args.workspace_id, args.experiment_id)
     requests = args.requests
@@ -148,6 +152,11 @@ def entry_point():
     s.add_argument('--dryrun', dest='dryrun', action='store_true')
     s.add_argument('--no-dryrun', dest='dryrun', action='store_false')
     s.set_defaults(func=do_submit_jobs, dryrun=False)
+
+    s = sub.add_parser('method-errors')
+    s.add_argument('workspace_id')
+    s.add_argument('experiment_id')
+    s.set_defaults(func=do_method_errors)
 
     s = sub.add_parser('job-info')
     s.add_argument('workspace_id')

@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, absolute_import
 import os
 from os.path import join
 import random
@@ -278,6 +278,55 @@ class Experiment(Cached):
         if not dryrun:
             self._store_jobs(jobs)
             cmd.store()
+
+    def method_errors(self):
+        tasks = self.get_tasks()
+        if len(tasks) == 0:
+            return
+        task_results = self.get_task_results()
+        from .workspace import get_workspace
+        prop = get_workspace(self._workspace_id).get_properties()
+
+        methods = task_results[0].methods
+        err_msgs = {m:set() for m in methods}
+        for tr in task_results:
+            for method in methods:
+                s = err_msgs[method]
+                if tr.error_status != 0:
+                    s.add(tr.error_msg(method))
+
+        ml = {m:prop[m]['label'] for m in methods}
+
+        for m in methods:
+            print('Error messages for %s:' % ml[m])
+            if len(err_msgs[m]) > 0:
+                for msg in err_msgs[m]:
+                    print(msg)
+
+        # table = []
+        # for m in methods:
+        #     table.append([method_label[m], nsucs[m],
+        #                   nfails[m]])
+        # msg = tabulate(table, headers=['method', 'sucs', 'fails'])
+        #
+        # for tr in task_results:
+        #     method_label = {m:prop[m]['label'] for m in methods}
+        #     if np.any(np.asarray(sf['nfails'].values()) > 0):
+        #         _set_warning_text(ax, 0, sf['nsucs'], sf['nfails'], methods,
+        #                           method_label)
+        #
+        # def _set_warning_text(ax, left, nsucs, nfails, methods, method_label):
+        #     from tabulate import tabulate
+        #     bottom = .0
+        #     table = []
+        #     for m in methods:
+        #         table.append([method_label[m], nsucs[m],
+        #                       nfails[m]])
+        #     msg = tabulate(table, headers=['method', 'sucs', 'fails'])
+        #     ax.text(left, bottom, msg,
+        #             horizontalalignment='left',
+        #             verticalalignment='bottom',
+        #             transform=ax.transAxes, fontsize=7, family='monospace')
 
     def _store_task_results(self, folder_split, jobid, task_results):
         base = join(self.folder, 'result', folder_split)
