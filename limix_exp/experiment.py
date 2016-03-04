@@ -25,6 +25,7 @@ class Experiment(Cached):
         self._task_id_counter = -1
         self.njobs = None
         self.nthreads = 1
+        self.nprocs = 1
         self._job_megabytes = None
 
     @property
@@ -253,7 +254,7 @@ class Experiment(Cached):
         cmd.queue = queue
         cmd.memory = self.job_memory
         cmd.mkl_nthreads = self.nthreads
-        cmd.nprocs = self.nthreads
+        cmd.nprocs = self.nthreads + self.nprocs
         if requests is not None:
             for request in requests:
                 cmd.request(request)
