@@ -8,8 +8,8 @@ import json
 import imp
 import shutil
 from . import config
-from limix_misc.report import BeginEnd
-from limix_misc.inspect_ import fetch_classes, fetch_functions
+from limix_util.report import BeginEnd
+from limix_util.inspect_ import fetch_classes, fetch_functions
 import limix_lsf
 from .experiment import Experiment
 

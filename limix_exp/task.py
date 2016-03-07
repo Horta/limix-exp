@@ -1,12 +1,12 @@
 from __future__ import absolute_import
 import os
 from tabulate import tabulate
-from limix_misc.pickle_ import pickle, unpickle, pickle_merge
-from limix_misc.pickle_ import SlotPickleMixin
-from limix_misc.pickle_ import PickleByName
-from limix_misc.report import BeginEnd
-from limix_misc.scalar import isfloat
-from limix_misc.str_ import summarize
+from limix_util.pickle_ import pickle, unpickle, pickle_merge
+from limix_util.pickle_ import SlotPickleMixin
+from limix_util.pickle_ import PickleByName
+from limix_util.report import BeginEnd
+from limix_util.scalar import isfloat
+from limix_util.str_ import summarize
 
 def extract_successes_and_failures(tasks):
     methods = tasks[0].get_result().methods

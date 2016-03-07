@@ -1,6 +1,6 @@
 from limix_exp.base import BasePlot
-from limix_util.qtl import NullScore
-from limix_util.qtl import combine_pvalues
+from limix_tool.qtl import NullScore
+from limix_tool.qtl import combine_pvalues
 # from gwarped_exp import workspace
 from limix_plot.qqplot import QQPlot
 

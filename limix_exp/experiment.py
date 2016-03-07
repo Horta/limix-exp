@@ -7,9 +7,9 @@ from humanfriendly import parse_size
 from tabulate import tabulate
 from limix_lsf import clusterrun
 from limix_lsf.clusterrun import ClusterRun
-from limix_misc import path_
-from limix_misc.path_ import make_sure_path_exists
-from limix_misc.report import BeginEnd, ProgressBar
+from limix_util import path_
+from limix_util.path_ import make_sure_path_exists
+from limix_util.report import BeginEnd, ProgressBar
 from hcache import Cached, cached
 from . import task
 from . import job

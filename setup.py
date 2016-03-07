@@ -56,7 +56,7 @@ def setup_package():
 
     write_version()
 
-    install_requires = ['tabulate', 'limix_misc', 'humanfriendly', 'limix_plot',
+    install_requires = ['tabulate', 'limix_util', 'humanfriendly', 'limix_plot',
                         'slugify', 'limix_lsf', 'hcache']
     setup_requires = []
 

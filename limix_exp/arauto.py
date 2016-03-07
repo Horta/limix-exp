@@ -5,7 +5,7 @@ from . import config
 from . import task
 from .workspace import get_workspace
 from .workspace import get_experiment
-from limix_misc.inspect_ import fetch_functions
+from limix_util.inspect_ import fetch_functions
 
 def _fetch_filter_file(script_filepath):
     funcs = fetch_functions(script_filepath, r'task_filter')

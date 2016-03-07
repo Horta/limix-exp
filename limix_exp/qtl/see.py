@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-import limix_util as lu
+import limix_tool as lu
 import gwarped_exp as gwe
 from gwarped_exp.plot.cal import CalPlot
 from slugify import slugify
