@@ -24,7 +24,7 @@ class Experiment(Cached):
         self.script_filepath = None
         self._task_id_counter = -1
         self.njobs = None
-        self.nthreads = 1
+        self.mkl_nthreads = 1
         self.nprocs = 1
         self._job_megabytes = None
 
@@ -253,8 +253,8 @@ class Experiment(Cached):
         cmd = ClusterRun(title)
         cmd.queue = queue
         cmd.memory = self.job_memory
-        cmd.mkl_nthreads = self.nthreads
-        cmd.nprocs = self.nthreads + self.nprocs
+        cmd.mkl_nthreads = self.mkl_nthreads
+        cmd.nprocs = self.nprocs
         if requests is not None:
             for request in requests:
                 cmd.request(request)
