@@ -100,7 +100,7 @@ class Experiment(Cached):
     @cached
     def _get_tasks(self):
         fpath = join(self.folder, 'tasks.pkl')
-        return task.load_tasks(fpath, verbose=True)
+        return task.load_tasks(fpath)
 
     def get_tasks(self):
         return self._get_tasks().values()
