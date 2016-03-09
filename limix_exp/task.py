@@ -107,7 +107,7 @@ class TaskResult(SlotPickleMixin):
     def _add_method(self, method):
         self._methods.add(method)
 
-def load_tasks(fpath, verbose=True):
+def load_tasks(fpath, verbose=False):
     with BeginEnd('Loading tasks', silent=not verbose):
         if os.path.exists(fpath):
             if verbose:
