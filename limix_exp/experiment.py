@@ -16,7 +16,7 @@ from . import job
 from . import config
 
 class Experiment(Cached):
-    def __init__(self, workspace_id, experiment_id):
+    def __init__(self, workspace_id, experiment_id, properties):
         super(Experiment, self).__init__()
         self._workspace_id = workspace_id
         self._experiment_id = experiment_id
@@ -27,6 +27,7 @@ class Experiment(Cached):
         self.mkl_nthreads = 1
         self.nprocs = 1
         self._job_megabytes = None
+        self._properties = properties
 
     @property
     def runid(self):
@@ -116,7 +117,7 @@ class Experiment(Cached):
     def define_task_args(self, task_args):
         raise NotImplementedError
 
-    def generate_tasks(self, workspace_folder, workspace_id):
+    def generate_tasks(self):
         raise NotImplementedError
 
     def generate_jobs(self, workspace_id):
@@ -192,10 +193,7 @@ class Experiment(Cached):
             tasks = self.get_tasks()
         else:
             with BeginEnd('Generating tasks'):
-                from .workspace import get_workspace
-                folder = get_workspace(self._workspace_id).dataset_folder
-                tasks = self.generate_tasks(folder, self._workspace_id)
-                print('   %d generated tasks   ' % len(tasks))
+                tasks = self.generate_tasks()
             self._store_tasks(tasks)
 
         ntasks = len(tasks)
@@ -203,11 +201,6 @@ class Experiment(Cached):
             self.njobs = ntasks
         else:
             self.njobs = min(self.njobs, ntasks)
-
-        import inspect
-        src_code = ''.join(inspect.getsourcelines(self.generate_tasks)[0])
-        with open(join(self.folder, 'generate_tasks.txt'), 'w') as f:
-            f.write(src_code)
 
         if not self.are_init_jobs_files_generated:
             with BeginEnd('Generating jobs'):
@@ -285,8 +278,7 @@ class Experiment(Cached):
         if len(tasks) == 0:
             return
         task_results = self.get_task_results()
-        from .workspace import get_workspace
-        prop = get_workspace(self._workspace_id).get_properties()
+        properties = self._properties
 
         methods = task_results[0].methods
         err_msgs = {m:set() for m in methods}
@@ -296,38 +288,13 @@ class Experiment(Cached):
                 if tr.error_status != 0:
                     s.add(tr.error_msg(method))
 
-        ml = {m:prop[m]['label'] for m in methods}
+        ml = {m:properties[m]['label'] for m in methods}
 
         for m in methods:
             print('Error messages for %s:' % ml[m])
             if len(err_msgs[m]) > 0:
                 for msg in err_msgs[m]:
                     print(msg)
-
-        # table = []
-        # for m in methods:
-        #     table.append([method_label[m], nsucs[m],
-        #                   nfails[m]])
-        # msg = tabulate(table, headers=['method', 'sucs', 'fails'])
-        #
-        # for tr in task_results:
-        #     method_label = {m:prop[m]['label'] for m in methods}
-        #     if np.any(np.asarray(sf['nfails'].values()) > 0):
-        #         _set_warning_text(ax, 0, sf['nsucs'], sf['nfails'], methods,
-        #                           method_label)
-        #
-        # def _set_warning_text(ax, left, nsucs, nfails, methods, method_label):
-        #     from tabulate import tabulate
-        #     bottom = .0
-        #     table = []
-        #     for m in methods:
-        #         table.append([method_label[m], nsucs[m],
-        #                       nfails[m]])
-        #     msg = tabulate(table, headers=['method', 'sucs', 'fails'])
-        #     ax.text(left, bottom, msg,
-        #             horizontalalignment='left',
-        #             verticalalignment='bottom',
-        #             transform=ax.transAxes, fontsize=7, family='monospace')
 
     def _store_task_results(self, folder_split, jobid, task_results):
         base = join(self.folder, 'result', folder_split)
@@ -338,7 +305,6 @@ class Experiment(Cached):
     @property
     def bgroup(self):
         return '/' + self._workspace_id + '/' + self._experiment_id
-
 
     def __str__(self):
         with BeginEnd('Compiling info table'):
