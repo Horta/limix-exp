@@ -17,7 +17,7 @@ def _fetch_filter(fp_or_code):
         return _fetch_filter_file(fp_or_code)
     return eval("lambda task: " + fp_or_code)
 
-def do_root(_1):
+def do_root():
     print(config.root_dir())
 
 def do_see(args, rargs):
@@ -206,7 +206,7 @@ def entry_point():
     sub = p.add_subparsers()
 
     s = sub.add_parser('root')
-    s.set_defaults(func=do_root)
+    s.set_defaults(func=lambda _: do_root())
 
     s = sub.add_parser('winfo')
     s.add_argument('workspace_id')

@@ -8,10 +8,10 @@ import json
 import imp
 import shutil
 from . import config
+from . import experiment
 from limix_util.report import BeginEnd
 from limix_util.inspect_ import fetch_classes, fetch_functions
 import limix_lsf
-from .experiment import Experiment
 
 _workspaces = dict()
 def get_workspace(workspace_id):
@@ -33,11 +33,11 @@ def get_experiment(workspace_id, experiment_id):
     return e
 
 def exists(workspace_id):
-    folder = join(config.root_dir(), workspace_id)
+    folder = join(config.conf['base_dir'], workspace_id)
     return os.path.exists(folder)
 
 def get_workspace_ids():
-    files = os.listdir(config.root_dir())
+    files = os.listdir(config.conf['base_dir'])
     return [f for f in files if os.path.isdir(f)]
 
 class Workspace(object):
@@ -77,7 +77,7 @@ class Workspace(object):
 
     @property
     def folder(self):
-        return join(config.root_dir(), self._workspace_id)
+        return join(config.conf['base_dir'], self._workspace_id)
 
     def _get_auto_run(self, experiment_id):
         auto_runs_map = self._get_auto_runs_map()
@@ -89,8 +89,8 @@ class Workspace(object):
         return self._experiments[experiment_id]
 
     def _setup_experiment(self, experiment_id):
-        self._experiments[experiment_id] = Experiment(self._workspace_id,
-                                                      experiment_id)
+        self._experiments[experiment_id] =\
+            experiment.Experiment(self._workspace_id, experiment_id)
         auto_run = self._get_auto_run(experiment_id)
         auto_run(self._experiments[experiment_id])
         self._experiments[experiment_id].finish_setup()
@@ -203,7 +203,6 @@ class Workspace(object):
             except KeyError:
                 nerrs_ke += 1
 
-    # with BeginEnd('Compiling info table'):
         table = []
         auto_run_fps = '\n'.join(self._auto_run_filepaths())
         table.append(['auto_run files', auto_run_fps])
@@ -213,17 +212,8 @@ class Workspace(object):
         table.append(["# ImportError's", str(nerrs_ie)])
         table.append(["# KeyError's", str(nerrs_ke)])
 
-        # table.append(['# tasks', str(self.ntasks)])
-        # bjobs_finished = [j.get_bjob() for j in self.get_jobs() if j.submitted and j.finished]
-        #
-        # nsub = sum([1 for j in self.get_jobs() if j.submitted])
-        # table.append(['# submitted jobs', str(nsub)])
-
         msg = tabulate(table)
 
-        # if nfail > 0:
-        #     msg += '\nFailed jobs: ' + str(failed_jobids)
-        #     msg += '\n'
         return msg
 
 def _get_auto_runs_map(script_filepath):
