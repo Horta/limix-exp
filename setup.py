@@ -57,7 +57,7 @@ def setup_package():
     write_version()
 
     install_requires = ['tabulate', 'limix_util', 'humanfriendly', 'limix_plot',
-                        'slugify', 'limix_lsf', 'hcache', 'limix_tool']
+                        'limix_lsf', 'hcache', 'limix_tool']
     setup_requires = []
 
     metadata = dict(
@@ -73,7 +73,8 @@ def setup_package():
         setup_requires=setup_requires,
         zip_safe=True,
         entry_points={
-            'console_scripts': ['arauto = limix_exp.arauto:entry_point']
+            'console_scripts': ['arauto = limix_exp.arauto:entry_point',
+                                'iarauto = limix_exp.iarauto:entry_point']
         }
     )
 

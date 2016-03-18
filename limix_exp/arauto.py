@@ -3,8 +3,7 @@ import os
 from argparse import ArgumentParser
 from . import config
 from . import task
-from .workspace import get_workspace
-from .workspace import get_experiment
+from . import workspace
 from limix_util.inspect_ import fetch_functions
 
 def _fetch_filter_file(script_filepath):
@@ -13,18 +12,18 @@ def _fetch_filter_file(script_filepath):
         return funcs[0]
     return None
 
-def _fetch_filter(script_filepath):
-    if os.path.exists(script_filepath):
-        return _fetch_filter_file(script_filepath)
-    return eval("lambda task: " + script_filepath)
+def _fetch_filter(fp_or_code):
+    if os.path.exists(fp_or_code):
+        return _fetch_filter_file(fp_or_code)
+    return eval("lambda task: " + fp_or_code)
 
-def do_root(_1, _2):
+def do_root(_1):
     print(config.root_dir())
 
 def do_see(args, rargs):
     from limix_plot.show import show
 
-    w = get_workspace(args.workspace_id)
+    w = workspace.get_workspace(args.workspace_id)
     e = w.get_experiment(args.experiment_id)
     tasks = [task for task in e.get_tasks() if task.finished]
 
@@ -50,8 +49,8 @@ def do_see(args, rargs):
     p.plot()
     show()
 
-def do_job_info(args, _):
-    e = get_experiment(args.workspace_id, args.experiment_id)
+def do_jinfo(args):
+    e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     job = e.get_job(args.job)
     print job
     if job.submitted:
@@ -68,33 +67,33 @@ def do_job_info(args, _):
             for task in tasks:
                 print task.get_result()
 
-def do_run_job(args, _):
+def do_rjob(args):
     if args.debug:
         import ipdb; ipdb.set_trace()
-    e = get_experiment(args.workspace_id, args.experiment_id)
+    e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     e.run_job(args.job, args.progress, args.dryrun, force=args.force)
 
-def do_rm_exp(args, _):
-    w = get_workspace(args.workspace_id)
+def do_rm_exp(args):
+    w = workspace.get_workspace(args.workspace_id)
     w.rm_experiment(args.experiment_id)
 
-def do_method_errors(args, _):
-    e = get_experiment(args.workspace_id, args.experiment_id)
+def do_err(args):
+    e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     e.method_errors()
 
-def do_submit_jobs(args, _):
-    e = get_experiment(args.workspace_id, args.experiment_id)
+def do_sjobs(args):
+    e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     requests = args.requests
     if requests is not None:
         requests = requests.split(',')
     e.submit_jobs(args.dryrun, requests=requests, queue=args.queue)
 
-def do_work_info(args, _):
-    w = get_workspace(args.workspace_id)
+def do_winfo(args):
+    w = workspace.get_workspace(args.workspace_id)
     print w
 
-def do_exp_info(args, _):
-    e = get_experiment(args.workspace_id, args.experiment_id)
+def do_einfo(args):
+    e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     print e
     if args.tasks:
         tasks = e.get_tasks()
@@ -104,6 +103,104 @@ def do_exp_info(args, _):
         jobids = sorted([j.jobid for j in jobs])
         print 'Finished job IDs: %s' % str(jobids)
 
+def parse_einfo(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+    p.add_argument('experiment_id')
+    p.add_argument('--tasks', dest='tasks', action='store_true')
+    p.add_argument('--no_tasks', dest='tasks', action='store_false')
+    p.add_argument('--finished_jobs', dest='finished_jobs', action='store_true')
+    p.add_argument('--no_finished_jobs', dest='finished_jobs', action='store_false')
+    p.set_defaults(task_args=False, finished_jobs=False)
+
+    args = p.parse_args(args)
+    do_einfo(args)
+
+def parse_jinfo(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+    p.add_argument('experiment_id')
+    p.add_argument('job', type=int)
+    p.add_argument('--result', dest='result', action='store_true')
+    p.add_argument('--no-result', dest='result', action='store_false')
+    p.add_argument('--stdout', dest='stdout', action='store_true')
+    p.add_argument('--no-stdout', dest='stdout', action='store_false')
+    p.add_argument('--stderr', dest='stderr', action='store_true')
+    p.add_argument('--no-stderr', dest='stderr', action='store_false')
+    p.set_defaults(result=False, stdout=True, stderr=True)
+
+    args = p.parse_args(args)
+    do_jinfo(args)
+
+def parse_rm_exp(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+    p.add_argument('experiment_id')
+    p.set_defaults(resubmit=False)
+
+    args = p.parse_args(args)
+    do_rm_exp(args)
+
+def parse_sjobs(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+    p.add_argument('experiment_id')
+    p.add_argument('--queue', default=None)
+    p.add_argument('--requests', default=None)
+    p.add_argument('--dryrun', dest='dryrun', action='store_true')
+    p.add_argument('--no-dryrun', dest='dryrun', action='store_false')
+    p.set_defaults(dryrun=False)
+
+    args = p.parse_args(args)
+    do_sjobs(args)
+
+def parse_rjob(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+    p.add_argument('experiment_id')
+    p.add_argument('job', type=int)
+    p.add_argument('--debug', dest='debug', action='store_true')
+    p.add_argument('--no-debug', dest='debug', action='store_false')
+    p.add_argument('--dryrun', dest='dryrun', action='store_true')
+    p.add_argument('--no-dryrun', dest='dryrun', action='store_false')
+    p.add_argument('--progress', dest='progress', action='store_true')
+    p.add_argument('--no-progress', dest='progress', action='store_false')
+    p.add_argument('--force', dest='force', action='store_true')
+    p.add_argument('--no-force', dest='force', action='store_false')
+    p.set_defaults(dryrun=False, progress=True, force=False, debug=False)
+
+    args = p.parse_args(args)
+    do_rjob(args)
+
+def parse_see(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+    p.add_argument('experiment_id')
+    p.add_argument('plot_class_name')
+    p.add_argument('--group_by', default=None)
+    p.add_argument('--task_filter', default=None)
+    p.add_argument('--grid', dest='grid', action='store_true')
+    p.add_argument('--no-grid', dest='grid', action='store_false')
+    p.set_defaults(grid=True)
+
+    args, rargs = p.parse_known_args(args)
+    do_see(args, rargs)
+
+def parse_winfo(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+
+    args = p.parse_args(args)
+    do_winfo(args)
+
+def parse_err(args):
+    p = ArgumentParser()
+    p.add_argument('workspace_id')
+    p.add_argument('experiment_id')
+
+    args = p.parse_args(args)
+    do_err(args)
+
 def entry_point():
     p = ArgumentParser()
     sub = p.add_subparsers()
@@ -111,76 +208,32 @@ def entry_point():
     s = sub.add_parser('root')
     s.set_defaults(func=do_root)
 
-    s = sub.add_parser('work-info')
+    s = sub.add_parser('winfo')
     s.add_argument('workspace_id')
-    s.set_defaults(func=do_work_info)
-
-    s = sub.add_parser('exp-info')
-    s.add_argument('workspace_id')
-    s.add_argument('experiment_id')
-    s.add_argument('--tasks', dest='tasks', action='store_true')
-    s.add_argument('--no_tasks', dest='tasks', action='store_false')
-    s.add_argument('--finished_jobs', dest='finished_jobs', action='store_true')
-    s.add_argument('--no_finished_jobs', dest='finished_jobs', action='store_false')
-    s.set_defaults(func=do_exp_info, task_args=False, finished_jobs=False)
+    s.set_defaults(func=parse_winfo)
 
     s = sub.add_parser('rm-exp')
-    s.add_argument('workspace_id')
-    s.add_argument('experiment_id')
-    s.set_defaults(func=do_rm_exp, resubmit=False)
+    s.set_defaults(func=parse_rm_exp)
 
-    s = sub.add_parser('run-job')
-    s.add_argument('workspace_id')
-    s.add_argument('experiment_id')
-    s.add_argument('--debug', dest='debug', action='store_true')
-    s.add_argument('--no-debug', dest='debug', action='store_false')
-    s.add_argument('--dryrun', dest='dryrun', action='store_true')
-    s.add_argument('--no-dryrun', dest='dryrun', action='store_false')
-    s.add_argument('--progress', dest='progress', action='store_true')
-    s.add_argument('--no-progress', dest='progress', action='store_false')
-    s.add_argument('--force', dest='force', action='store_true')
-    s.add_argument('--no-force', dest='force', action='store_false')
-    s.add_argument('job', type=int)
-    s.set_defaults(func=do_run_job, dryrun=False, progress=True, force=False,
-                   debug=False)
+    s = sub.add_parser('einfo')
+    s.set_defaults(func=parse_einfo)
 
-    s = sub.add_parser('submit-jobs')
-    s.add_argument('workspace_id')
-    s.add_argument('experiment_id')
-    s.add_argument('--queue', default=None)
-    s.add_argument('--requests', default=None)
-    s.add_argument('--dryrun', dest='dryrun', action='store_true')
-    s.add_argument('--no-dryrun', dest='dryrun', action='store_false')
-    s.set_defaults(func=do_submit_jobs, dryrun=False)
+    s = sub.add_parser('rjob')
+    s.set_defaults(func=parse_rjob)
 
-    s = sub.add_parser('method-errors')
-    s.add_argument('workspace_id')
-    s.add_argument('experiment_id')
-    s.set_defaults(func=do_method_errors)
+    s = sub.add_parser('sjobs')
+    s.set_defaults(func=parse_sjobs)
 
-    s = sub.add_parser('job-info')
-    s.add_argument('workspace_id')
-    s.add_argument('experiment_id')
-    s.add_argument('--result', dest='result', action='store_true')
-    s.add_argument('--no-result', dest='result', action='store_false')
-    s.add_argument('--stdout', dest='stdout', action='store_true')
-    s.add_argument('--no-stdout', dest='stdout', action='store_false')
-    s.add_argument('--stderr', dest='stderr', action='store_true')
-    s.add_argument('--no-stderr', dest='stderr', action='store_false')
-    s.add_argument('job', type=int)
-    s.set_defaults(func=do_job_info, result=False, stdout=True, stderr=True)
+    s = sub.add_parser('err')
+    s.set_defaults(func=parse_err)
+
+    s = sub.add_parser('jinfo')
+    s.set_defaults(func=parse_jinfo)
 
     s = sub.add_parser('see')
-    s.add_argument('workspace_id')
-    s.add_argument('experiment_id')
-    s.add_argument('plot_class_name')
-    s.add_argument('--group_by', default=None)
-    s.add_argument('--task_filter', default=None)
-    s.add_argument('--grid', dest='grid', action='store_true')
-    s.add_argument('--no-grid', dest='grid', action='store_false')
-    s.set_defaults(func=do_see, grid=True)
+    s.set_defaults(func=parse_see)
 
     args, rargs = p.parse_known_args()
     func = args.func
     del args.func
-    func(args, rargs)
+    func(rargs)

@@ -260,7 +260,7 @@ class Experiment(Cached):
                 cmd.request(request)
 
         for j in jobs:
-            a = ['arauto', 'run-job', self._workspace_id]
+            a = ['arauto', 'rjob', self._workspace_id]
             a += [self._experiment_id]
             a += [j.jobid]
             if dryrun:
