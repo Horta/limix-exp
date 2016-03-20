@@ -1,8 +1,11 @@
 import numpy as np
+import os
+from . import workspace
 from limix_lsf import clusterrun
 from limix_util import pickle_
 from limix_util.report import BeginEnd, ProgressBar
 from limix_util.time_ import Timer
+from limix_util.path_ import folder_hash
 from hcache import Cached, cached
 
 class Job(Cached):
@@ -32,7 +35,6 @@ class Job(Cached):
 
     @property
     def task_ids(self):
-        import workspace
         e = workspace.get_experiment(self._workspace_id, self._experiment_id)
 
         task2job = np.floor(e.njobs * np.arange(e.ntasks) / e.ntasks)
@@ -44,7 +46,6 @@ class Job(Cached):
     def get_tasks(self):
         task_ids = self.task_ids
 
-        import workspace
         e = workspace.get_experiment(self._workspace_id, self._experiment_id)
 
         tasks = e.get_tasks()
@@ -107,10 +108,12 @@ def load_job(fpath):
     return pickle_.unpickle(fpath)
 
 def collect_jobs(folder):
-    with BeginEnd('Merging jobs'):
-        fpath = pickle_.pickle_merge(folder)
-    if fpath is None:
-        return None
-    with BeginEnd('Unpickling merged jobs'):
-        out = pickle_.unpickle(fpath)
-    return out
+    exist = os.path.exists(os.path.join(folder, 'all.pkl'))
+
+    if exist:
+        ha = folder_hash(folder, ['all.pkl', '.folder_hash'])
+        if ha == open(os.path.join(folder, '.folder_hash')).read(32):
+            with BeginEnd('Unpickling jobs'):
+                return pickle_.unpickle(os.path.join(folder, 'all.pkl'))
+
+    return pickle_.pickle_merge(folder)
