@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 import os
 from tabulate import tabulate
-from limix_util.pickle_ import pickle, unpickle, pickle_merge
 from limix_util.pickle_ import SlotPickleMixin
 from limix_util.pickle_ import PickleByName
+from limix_util import pickle_
+from limix_util.path_ import folder_hash
 from limix_util.report import BeginEnd
 from limix_util.scalar import isfloat
 from limix_util.str_ import summarize
@@ -114,7 +115,7 @@ def load_tasks(fpath, verbose=False):
                 print "Exist %s" % fpath
         else:
             print "Does not exist %s" % fpath
-        tasks = unpickle(fpath)
+        tasks = pickle_.unpickle(fpath)
         if verbose:
             print('   %d tasks found  ' % len(tasks))
     return tasks
@@ -122,31 +123,35 @@ def load_tasks(fpath, verbose=False):
 def store_tasks(tasks, fpath):
     if os.path.exists(fpath):
         return
-    pickle({t.task_id:t for t in tasks}, fpath)
+    pickle_.pickle({t.task_id:t for t in tasks}, fpath)
 
 def load_task_args(fpath):
-    return unpickle(fpath)
+    return pickle_.unpickle(fpath)
 
 def store_task_args(task_args, fpath):
     if os.path.exists(fpath):
         return
-    pickle(task_args, fpath)
+    pickle_.pickle(task_args, fpath)
 
 def collect_task_results(folder, force_cache=False):
-    if force_cache:
-        fpath = os.path.join(folder, 'all.pkl')
-    else:
-        with BeginEnd('Merging task results'):
-            fpath = pickle_merge(folder)
-    if fpath is None:
-        return fpath
-    with BeginEnd('Unpickling merged task results'):
-        out = unpickle(fpath)
-    return out
+    assert force_cache is False
+    fpath = os.path.join(folder, 'all.pkl')
+    exist = os.path.exists(fpath)
+
+    if exist:
+        ha = folder_hash(folder, ['all.pkl', '.folder_hash'])
+        fh = os.path.join(folder, '.folder_hash')
+        ok = os.path.exists(fh)
+        ok = ok and ha == open(os.path.join(folder, '.folder_hash')).read(32)
+        if ok:
+            with BeginEnd('Unpickling tasks'):
+                return pickle_.unpickle(os.path.join(folder, 'all.pkl'))
+
+    return pickle_.pickle_merge(folder)
 
 def store_task_results(task_results, fpath):
     with BeginEnd('Storing task results'):
-        pickle({tr.task_id:tr for tr in task_results}, fpath)
+        pickle_.pickle({tr.task_id:tr for tr in task_results}, fpath)
         print('   %d task results stored   ' % len(task_results))
 
 def tasks_summary(tasks):

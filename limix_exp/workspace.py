@@ -56,8 +56,15 @@ class Workspace(object):
                 shutil.rmtree(e.folder)
 
     def get_properties(self):
-        with open(join(self.folder, 'properties.json')) as json_file:
-            return json.load(json_file)
+        try:
+            with open(join(self.folder, 'properties.json')) as json_file:
+                return json.load(json_file)
+        except ValueError as e:
+            print(e)
+            print("File: %s", join(self.folder, 'properties.json'))
+            print('File content:')
+            print(open(join(self.folder, 'properties.json')).read())
+            os.system("hostname")
 
     def get_plot_class(self, name):
         return self._get_plot_classes_map()[name]
@@ -81,8 +88,8 @@ class Workspace(object):
 
     def _get_auto_run(self, experiment_id):
         auto_runs_map = self._get_auto_runs_map()
-        if experiment_id not in auto_runs_map:
-            return None
+        # if experiment_id not in auto_runs_map:
+            # return None
         return auto_runs_map[experiment_id]
 
     def get_experiment(self, experiment_id):
