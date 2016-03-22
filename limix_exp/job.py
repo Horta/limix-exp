@@ -1,6 +1,5 @@
 import numpy as np
 import os
-from . import workspace
 from limix_lsf import clusterrun
 from limix_util import pickle_
 from limix_util.report import BeginEnd, ProgressBar
@@ -35,6 +34,8 @@ class Job(Cached):
 
     @property
     def task_ids(self):
+        from . import workspace
+
         e = workspace.get_experiment(self._workspace_id, self._experiment_id)
 
         task2job = np.floor(e.njobs * np.arange(e.ntasks) / e.ntasks)
@@ -44,6 +45,8 @@ class Job(Cached):
         return task_ids
 
     def get_tasks(self):
+        from . import workspace
+
         task_ids = self.task_ids
 
         e = workspace.get_experiment(self._workspace_id, self._experiment_id)

@@ -1,7 +1,7 @@
 from __future__ import division, absolute_import
 import os
 from argparse import ArgumentParser
-from . import config
+from .config import conf
 from . import task
 from . import workspace
 from limix_util.inspect_ import fetch_functions
@@ -18,7 +18,7 @@ def _fetch_filter(fp_or_code):
     return eval("lambda task: " + fp_or_code)
 
 def do_root():
-    print(config.root_dir())
+    print(conf.get('default', 'base_dir'))
 
 def do_see(args, rargs):
     from limix_plot.show import show
@@ -89,8 +89,11 @@ def do_sjobs(args):
     e.submit_jobs(args.dryrun, requests=requests, queue=args.queue)
 
 def do_winfo(args):
-    w = workspace.get_workspace(args.workspace_id)
-    print w
+    if workspace.exists(args.workspace_id):
+        w = workspace.get_workspace(args.workspace_id)
+        print w
+    else:
+        print('Workspace %s does not exist.' % args.workspace_id)
 
 def do_einfo(args):
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)

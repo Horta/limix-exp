@@ -1,14 +1,11 @@
 import os
+import ConfigParser
 
-def conf():
+def _conf():
     home = os.path.expanduser('~')
-    f = open(os.path.join(home, '.config', 'exp', 'config'))
-    conf_ = dict()
-    for line in f.readline():
-        part = line.split('=')
-        if len(part) != 2:
-            continue
-        name = part[0]
-        value = part[1]
-        conf_[name] = value
-    return conf_
+    fp = os.path.join(home, '.config', 'exp', 'config')
+    cp = ConfigParser.ConfigParser()
+    cp.read(fp)
+    return cp
+
+conf = _conf()

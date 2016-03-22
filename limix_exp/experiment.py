@@ -13,7 +13,7 @@ from limix_util.report import BeginEnd, ProgressBar
 from hcache import Cached, cached
 from . import task
 from . import job
-from . import config
+from .config import conf
 
 class Experiment(Cached):
     def __init__(self, workspace_id, experiment_id, properties):
@@ -28,6 +28,8 @@ class Experiment(Cached):
         self.nprocs = 1
         self._job_megabytes = None
         self._properties = properties
+        self.auto_run_done = False
+        self.finish_setup_done = False
 
     @property
     def runid(self):
@@ -85,7 +87,7 @@ class Experiment(Cached):
 
     @property
     def folder(self):
-        return join(config.root_dir(),
+        return join(conf.get('default', 'base_dir'),
                     self._workspace_id,
                     self._experiment_id)
 
@@ -211,6 +213,8 @@ class Experiment(Cached):
             self._store_jobs(jobs)
             fp = join(self.folder, '.init_jobs_files_generated')
             path_.touch(fp)
+
+        self.finish_setup_done = True
 
     @cached
     def get_job(self, jobid):
