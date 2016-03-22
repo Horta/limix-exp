@@ -115,7 +115,10 @@ def collect_jobs(folder):
 
     if exist:
         ha = folder_hash(folder, ['all.pkl', '.folder_hash'])
-        if ha == open(os.path.join(folder, '.folder_hash')).read(32):
+        fh = os.path.join(folder, '.folder_hash')
+        ok = os.path.exists(fh)
+        ok = ok and ha == open(os.path.join(folder, '.folder_hash')).read(32)
+        if ok:
             with BeginEnd('Unpickling jobs'):
                 return pickle_.unpickle(os.path.join(folder, 'all.pkl'))
 
