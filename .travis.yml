@@ -36,7 +36,7 @@ before_install:
 
   # Replace dep1 dep2 ... with your dependencies
   - conda install conda-build
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy setuptools matplotlib scipy cython
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy setuptools matplotlib scipy cython numba
   - source activate test-environment
   - pip install -r requirements.txt
 

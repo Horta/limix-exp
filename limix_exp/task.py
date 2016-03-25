@@ -57,7 +57,6 @@ class Task(PickleByName):
         e = get_experiment(self.workspace_id, self.experiment_id)
         if e is None:
             return None
-
         return e.get_task_result(self.task_id)
 
 class TaskResult(SlotPickleMixin):
