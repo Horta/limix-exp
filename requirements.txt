@@ -1,8 +1,0 @@
-tabulate
-limix_util
-humanfriendly
-limix_plot
-slugify
-limix_lsf
-hcache
-limix_tool

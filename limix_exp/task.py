@@ -111,9 +111,9 @@ def load_tasks(fpath, verbose=False):
     with BeginEnd('Loading tasks', silent=not verbose):
         if os.path.exists(fpath):
             if verbose:
-                print "Exist %s" % fpath
+                print("Exist %s" % fpath)
         else:
-            print "Does not exist %s" % fpath
+            print("Does not exist %s" % fpath)
         tasks = pickle_.unpickle(fpath)
         if verbose:
             print('   %d tasks found  ' % len(tasks))

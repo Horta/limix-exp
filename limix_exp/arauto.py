@@ -52,20 +52,20 @@ def do_see(args, rargs):
 def do_jinfo(args):
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     job = e.get_job(args.job)
-    print job
+    print(job)
     if job.submitted:
         if args.stdout:
-            print '--- STDOUT BEGIN ---'
-            print job.get_bjob().stdout()
-            print '--- STDOUT END ---'
+            print('--- STDOUT BEGIN ---')
+            print(job.get_bjob().stdout())
+            print('--- STDOUT END ---')
         if args.stderr:
-            print '--- STDERR BEGIN ---'
-            print job.get_bjob().stderr()
-            print '--- STDERR END ---'
+            print('--- STDERR BEGIN ---')
+            print(job.get_bjob().stderr())
+            print('--- STDERR END ---')
         if args.result:
             tasks = job.get_tasks()
             for task in tasks:
-                print task.get_result()
+                print(task.get_result())
 
 def do_rjob(args):
     if args.debug:
@@ -91,20 +91,20 @@ def do_sjobs(args):
 def do_winfo(args):
     if workspace.exists(args.workspace_id):
         w = workspace.get_workspace(args.workspace_id)
-        print w
+        print(w)
     else:
         print('Workspace %s does not exist.' % args.workspace_id)
 
 def do_einfo(args):
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
-    print e
+    print(e)
     if args.tasks:
         tasks = e.get_tasks()
-        print task.tasks_summary(tasks)
+        print(task.tasks_summary(tasks))
     if args.finished_jobs:
         jobs = [j for j in e.get_jobs() if j.finished]
         jobids = sorted([j.jobid for j in jobs])
-        print 'Finished job IDs: %s' % str(jobids)
+        print('Finished job IDs: %s' % str(jobids))
 
 def parse_einfo(args):
     p = ArgumentParser()
