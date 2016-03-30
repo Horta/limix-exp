@@ -46,6 +46,7 @@ def do_see(args, rargs):
     p = plot_cls(args.workspace_id, args.experiment_id, properties, tasks,
                  rargs)
     p.group_by = group_by
+    p.grid = args.grid
     p.plot()
     show()
 
