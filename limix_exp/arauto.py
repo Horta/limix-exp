@@ -21,7 +21,6 @@ def do_root():
     print(conf.get('default', 'base_dir'))
 
 def do_see(args, rargs):
-    from limix_plot.show import show
 
     w = workspace.get_workspace(args.workspace_id)
     e = w.get_experiment(args.experiment_id)
@@ -41,14 +40,20 @@ def do_see(args, rargs):
     else:
         group_by = None
 
+    import matplotlib.pyplot as plt
+    plt.style.use('nice')
+    fig = plt.figure()
+
     properties = w.get_properties()
     plot_cls = w.get_plot_class(args.plot_class_name)
     p = plot_cls(args.workspace_id, args.experiment_id, properties, tasks,
-                 rargs)
+                 rargs, fig=fig)
     p.group_by = group_by
     p.grid = args.grid
     p.plot()
-    show()
+
+    from limix_plot.show import show
+    show(fig)
 
 def do_jinfo(args):
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
@@ -181,6 +186,7 @@ def parse_see(args):
     p.add_argument('workspace_id')
     p.add_argument('experiment_id')
     p.add_argument('plot_class_name')
+    p.add_argument('--style', default='nice')
     p.add_argument('--group_by', default=None)
     p.add_argument('--task_filter', default=None)
     p.add_argument('--grid', dest='grid', action='store_true')

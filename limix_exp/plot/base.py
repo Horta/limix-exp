@@ -1,4 +1,4 @@
-import matplotlib.pylab as plt
+from matplotlib.pyplot import figure
 from limix_util.scalar import isfloat
 from limix_util.dict_ import group_by as lms_group_by
 from limix_plot.grid import grid_plot
@@ -22,7 +22,7 @@ class BasePlot(object):
     def plot(self):
         self._setup_tasks_grouping()
 
-        fig = plt.figure() if self._fig is None else self._fig
+        fig = figure() if self._fig is None else self._fig
         if self.group_by:
             grid_plot(self.group_by, self.tasks,
                       self._plot_tasks, fig=fig)
@@ -33,7 +33,7 @@ class BasePlot(object):
     def plot_grouped(self):
         self._setup_tasks_grouping()
 
-        fig = plt.figure() if self._fig is None else self._fig
+        fig = figure() if self._fig is None else self._fig
         if self.group_by:
 
             def callback(tasks, axis):
