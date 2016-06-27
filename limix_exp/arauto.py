@@ -42,7 +42,11 @@ def do_see(args, rargs):
 
     import matplotlib.pyplot as plt
     plt.style.use('nice')
-    fig = plt.figure()
+    if args.figsize is None:
+        fig = plt.figure()
+    else:
+        figsize = (float(s) for s in args.figsize.split(','))
+        fig = plt.figure(figsize=figsize)
 
     properties = w.get_properties()
     plot_cls = w.get_plot_class(args.plot_class_name)
@@ -52,8 +56,12 @@ def do_see(args, rargs):
     p.grid = args.grid
     p.plot()
 
-    from limix_plot.show import show
-    show(fig)
+    if args.outfile is None:
+        from limix_plot.show import show
+        show(fig)
+    else:
+        from limix_plot.savefig import savefig
+        savefig(args.outfile, fig)
 
 def do_jinfo(args):
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
@@ -186,7 +194,9 @@ def parse_see(args):
     p.add_argument('workspace_id')
     p.add_argument('experiment_id')
     p.add_argument('plot_class_name')
+    p.add_argument('--outfile', '-o', dest='outfile', default=None)
     p.add_argument('--style', default='nice')
+    p.add_argument('--figsize', default=None)
     p.add_argument('--group_by', default=None)
     p.add_argument('--task_filter', default=None)
     p.add_argument('--grid', dest='grid', action='store_true')
