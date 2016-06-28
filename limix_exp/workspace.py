@@ -139,6 +139,7 @@ class Workspace(object):
         p = ArgumentParser()
         p.add_argument('--dryrun', dest='dryrun', action='store_true')
         p.add_argument('--no-dryrun', dest='dryrun', action='store_false')
+        p.add_argument('--queue', default=None)
         p.set_defaults(dryrun=False, parallel=True)
 
         args = p.parse_args(args)
@@ -149,7 +150,7 @@ class Workspace(object):
             func(exp)
 
             try:
-                exp.submit_jobs(args.dryrun)
+                exp.submit_jobs(args.dryrun, queue=args.queue)
             except KeyboardInterrupt:
                 shutil.rmtree(exp.folder)
                 raise
