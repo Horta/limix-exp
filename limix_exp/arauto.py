@@ -5,6 +5,7 @@ from .config import conf
 from . import task
 from . import workspace
 from limix_util.inspect_ import fetch_functions
+import logging
 
 def _fetch_filter_file(script_filepath):
     funcs = fetch_functions(script_filepath, r'task_filter')
@@ -222,6 +223,7 @@ def parse_err(args):
     do_err(args)
 
 def entry_point():
+    logging.basicConfig(level=logging.INFO)
     p = ArgumentParser()
     sub = p.add_subparsers()
 

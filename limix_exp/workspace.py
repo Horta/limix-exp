@@ -12,6 +12,7 @@ from . import experiment
 from limix_util.report import BeginEnd
 from limix_util.inspect_ import fetch_classes, fetch_functions
 import limix_lsf
+import logging
 
 _workspaces = dict()
 def get_workspace(workspace_id):
@@ -47,6 +48,7 @@ class Workspace(object):
         self._script_filepath = None
         self._experiments = dict()
         self.force_cache = False
+        self._logger = logging.getLogger(__name__)
 
     def rm_experiment(self, experiment_id):
         e = self.get_experiment(experiment_id)
@@ -71,12 +73,14 @@ class Workspace(object):
 
     def _get_plot_classes_map(self):
         f = join(self.folder, 'plot.json')
+        self._logger.info("Reading plot config file %s.", f)
         with open(f) as json_file:
             fpaths = json.load(json_file)
             fpaths = [str(fpath) for fpath in fpaths]
 
         plot_classes_map = dict()
         for fp in fpaths:
+            self._logger.info("Reading file %s.", fp)
             clss = fetch_classes(fp, '.*Plot')
             for clsi in clss:
                 plot_classes_map[clsi.__name__] = clsi
