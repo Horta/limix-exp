@@ -116,6 +116,7 @@ class Workspace(object):
         fps = self._auto_run_filepaths()
         auto_runs_map = dict()
         for fp in fps:
+            self._logger.info("Reading file %s.", fp)
             funcs = fetch_functions(fp, r'^auto_run_.+$')
             auto_runs_map.update([(f.func_name[9:], f) for f in funcs])
         return auto_runs_map
@@ -127,6 +128,7 @@ class Workspace(object):
     def _auto_run_filepaths(self):
         f = join(self.folder, 'auto_run.json')
         if not os.path.exists(f):
+            self._logger.warn("File %s does not exist.", f)
             return []
         with open(f) as json_file:
             fpaths = json.load(json_file)

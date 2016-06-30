@@ -85,6 +85,10 @@ def do_jinfo(args):
 def do_rjob(args):
     if args.debug:
         import ipdb; ipdb.set_trace()
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     e.run_job(args.job, args.progress, args.dryrun, force=args.force)
 
@@ -101,7 +105,8 @@ def do_sjobs(args):
     requests = args.requests
     if requests is not None:
         requests = requests.split(',')
-    e.submit_jobs(args.dryrun, requests=requests, queue=args.queue)
+    e.submit_jobs(args.dryrun, requests=requests, queue=args.queue,
+                  verbose=args.verbose)
 
 def do_winfo(args):
     if workspace.exists(args.workspace_id):
@@ -167,6 +172,8 @@ def parse_sjobs(args):
     p.add_argument('--requests', default=None)
     p.add_argument('--dryrun', dest='dryrun', action='store_true')
     p.add_argument('--no-dryrun', dest='dryrun', action='store_false')
+    p.add_argument("-v", "--verbose", help="increase output verbosity",
+                   action="store_true")
     p.set_defaults(dryrun=False)
 
     args = p.parse_args(args)
@@ -185,6 +192,8 @@ def parse_rjob(args):
     p.add_argument('--no-progress', dest='progress', action='store_false')
     p.add_argument('--force', dest='force', action='store_true')
     p.add_argument('--no-force', dest='force', action='store_false')
+    p.add_argument("-v", "--verbose", help="increase output verbosity",
+                   action="store_true")
     p.set_defaults(dryrun=False, progress=True, force=False, debug=False)
 
     args = p.parse_args(args)
@@ -223,8 +232,10 @@ def parse_err(args):
     do_err(args)
 
 def entry_point():
-    logging.basicConfig(level=logging.INFO)
     p = ArgumentParser()
+    p.add_argument("-v", "--verbose", help="increase output verbosity",
+                   action="store_true")
+
     sub = p.add_subparsers()
 
     s = sub.add_parser('root')
@@ -256,6 +267,12 @@ def entry_point():
     s.set_defaults(func=parse_see)
 
     args, rargs = p.parse_known_args()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     func = args.func
     del args.func
     func(rargs)

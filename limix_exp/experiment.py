@@ -2,6 +2,7 @@ from __future__ import division, absolute_import
 import os
 from os.path import join
 import random
+import logging
 from humanfriendly import format_size
 from humanfriendly import parse_size
 from tabulate import tabulate
@@ -30,6 +31,7 @@ class Experiment(Cached):
         self._properties = properties
         self.auto_run_done = False
         self.finish_setup_done = False
+        self._logger = logging.getLogger(__name__)
 
     @property
     def runid(self):
@@ -46,7 +48,10 @@ class Experiment(Cached):
         jobs = self.get_jobs()
         runids = set([j.brunid for j in jobs if j.submitted])
         for ri in runids:
-            clusterrun.load(ri).kill()
+            if clusterrun.exists(ri):
+                clusterrun.load(ri).kill()
+            else:
+                self._logger.warn('Cluster run %s does not exist.' % ri)
 
     @property
     def job_memory(self):
@@ -241,7 +246,7 @@ class Experiment(Cached):
         cr = clusterrun.load(self.runid)
         cr.resubmit(job.bjobid)
 
-    def submit_jobs(self, dryrun, requests=None, queue=None):
+    def submit_jobs(self, dryrun, requests=None, queue=None, verbose=False):
         jobs = self.get_jobs()
         myrand = random.Random(937628)
         myrand.shuffle(jobs)
@@ -265,6 +270,8 @@ class Experiment(Cached):
             else:
                 a += ['--no-dryrun']
             a += ['--no-progress']
+            if verbose:
+                a += ['--verbose']
             cmd.add(a)
 
         self.runid = cmd.run(dryrun=dryrun)
