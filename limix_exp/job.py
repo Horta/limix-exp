@@ -1,10 +1,10 @@
 import numpy as np
 import os
 from limix_lsf import clusterrun
-from limix_util import pickle_
+from limix_util import pickle
 from limix_util.report import BeginEnd, ProgressBar
-from limix_util.time_ import Timer
-from limix_util.path_ import folder_hash
+from limix_util.time import Timer
+from limix_util.path import folder_hash
 from hcache import Cached, cached
 
 class Job(Cached):

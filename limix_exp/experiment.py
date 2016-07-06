@@ -8,8 +8,8 @@ from humanfriendly import parse_size
 from tabulate import tabulate
 from limix_lsf import clusterrun
 from limix_lsf.clusterrun import ClusterRun
-from limix_util import path_
-from limix_util.path_ import make_sure_path_exists
+from limix_util import path as path_
+from limix_util.path import make_sure_path_exists
 from limix_util.report import BeginEnd, ProgressBar
 from hcache import Cached, cached
 from . import task
@@ -32,6 +32,7 @@ class Experiment(Cached):
         self.auto_run_done = False
         self.finish_setup_done = False
         self._logger = logging.getLogger(__name__)
+        self._logger.debug('Experiment %s has been created.', experiment_id)
 
     @property
     def runid(self):
@@ -50,6 +51,7 @@ class Experiment(Cached):
         for ri in runids:
             if clusterrun.exists(ri):
                 clusterrun.load(ri).kill()
+                clusterrun.rm(ri)
             else:
                 self._logger.warn('Cluster run %s does not exist.' % ri)
 
@@ -262,7 +264,10 @@ class Experiment(Cached):
                 cmd.request(request)
 
         for j in jobs:
-            a = ['arauto', 'rjob', self._workspace_id]
+            a = ['arauto']
+            if self._logger.isEnabledFor(logging.DEBUG):
+                a += ['--verbose']
+            a += ['rjob', self._workspace_id]
             a += [self._experiment_id]
             a += [j.jobid]
             if dryrun:
@@ -270,8 +275,6 @@ class Experiment(Cached):
             else:
                 a += ['--no-dryrun']
             a += ['--no-progress']
-            if verbose:
-                a += ['--verbose']
             cmd.add(a)
 
         self.runid = cmd.run(dryrun=dryrun)

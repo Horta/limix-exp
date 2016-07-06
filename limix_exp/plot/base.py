@@ -1,6 +1,6 @@
 from matplotlib.pyplot import figure
 from limix_util.scalar import isfloat
-from limix_util.dict_ import group_by as lms_group_by
+from limix_util.dict import group_by as lms_group_by
 from limix_plot.grid import grid_plot
 
 def _sort_key(k):

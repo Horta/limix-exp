@@ -10,7 +10,7 @@ import shutil
 from .config import conf
 from . import experiment
 from limix_util.report import BeginEnd
-from limix_util.inspect_ import fetch_classes, fetch_functions
+from limix_util.inspect import fetch_classes, fetch_functions
 import limix_lsf
 import logging
 
@@ -49,6 +49,7 @@ class Workspace(object):
         self._experiments = dict()
         self.force_cache = False
         self._logger = logging.getLogger(__name__)
+        self._logger.debug('Workspace %s has been created.', workspace_id)
 
     def rm_experiment(self, experiment_id):
         e = self.get_experiment(experiment_id)

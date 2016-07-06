@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from .config import conf
 from . import task
 from . import workspace
-from limix_util.inspect_ import fetch_functions
+from limix_util.inspect import fetch_functions
 import logging
 
 def _fetch_filter_file(script_filepath):
@@ -85,10 +85,6 @@ def do_jinfo(args):
 def do_rjob(args):
     if args.debug:
         import ipdb; ipdb.set_trace()
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     e.run_job(args.job, args.progress, args.dryrun, force=args.force)
 
@@ -105,8 +101,7 @@ def do_sjobs(args):
     requests = args.requests
     if requests is not None:
         requests = requests.split(',')
-    e.submit_jobs(args.dryrun, requests=requests, queue=args.queue,
-                  verbose=args.verbose)
+    e.submit_jobs(args.dryrun, requests=requests, queue=args.queue)
 
 def do_winfo(args):
     if workspace.exists(args.workspace_id):
@@ -172,8 +167,6 @@ def parse_sjobs(args):
     p.add_argument('--requests', default=None)
     p.add_argument('--dryrun', dest='dryrun', action='store_true')
     p.add_argument('--no-dryrun', dest='dryrun', action='store_false')
-    p.add_argument("-v", "--verbose", help="increase output verbosity",
-                   action="store_true")
     p.set_defaults(dryrun=False)
 
     args = p.parse_args(args)
@@ -192,8 +185,6 @@ def parse_rjob(args):
     p.add_argument('--no-progress', dest='progress', action='store_false')
     p.add_argument('--force', dest='force', action='store_true')
     p.add_argument('--no-force', dest='force', action='store_false')
-    p.add_argument("-v", "--verbose", help="increase output verbosity",
-                   action="store_true")
     p.set_defaults(dryrun=False, progress=True, force=False, debug=False)
 
     args = p.parse_args(args)
