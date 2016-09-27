@@ -1,7 +1,7 @@
 import numpy as np
 import os
 from limix_lsf import clusterrun
-from limix_util import pickle
+from limix_util import pickle as pickle_
 from limix_util.report import BeginEnd, ProgressBar
 from limix_util.time import Timer
 from limix_util.path import folder_hash
