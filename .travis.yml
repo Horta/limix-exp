@@ -1,44 +1,49 @@
 language: python
-sudo: false
-
-cache:
-  - pip
-  - apt
-
-python:
-  - 2.7
-  - 3.5
-
-addons:
-  apt:
-    packages:
-      - build-essential
-      - python-dev
-      - libc6
-      - g++
-      - gfortran
-
+matrix:
+  include:
+  - os: linux
+    sudo: false
+    dist: trusty
+    python: '2.7'
+  - os: linux
+    sudo: false
+    dist: trusty
+    python: '3.4'
+  - os: linux
+    sudo: false
+    dist: trusty
+    python: '3.5'
+  - os: osx
+    language: generic
+    env: TRAVIS_PYTHON_VERSION=3.5
 before_install:
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  # Useful for debugging any issues with conda
-  - conda info -a
-
-  # Replace dep1 dep2 ... with your dependencies
-  - conda install conda-build
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy setuptools matplotlib scipy cython numba
-  - source activate test-environment
-
-
-install: python setup.py install
-script: python setup.py test
+- wget https://raw.githubusercontent.com/Horta/travis-miniconda/master/install.sh
+  -O install.sh
+- chmod +x install.sh
+- travis_retry bash -x ./install.sh
+install:
+- export PATH="$HOME/miniconda/bin:$PATH"
+- source activate travisci
+- travis_retry conda install pycparser -y --name travisci
+before_script:
+- export PATH="$HOME/miniconda/bin:$PATH"
+- source activate travisci
+- python setup.py test
+script:
+- export PATH="$HOME/miniconda/bin:$PATH"
+- source activate travisci
+- python setup.py sdist
+- pip install dist/`ls dist | grep -i -E '\.(gz)$' | head -1`
+- pushd /
+- python -c "import limix_exp; limix_exp.test()"
+- popd
+deploy:
+  provider: pypi
+  skip_cleanup: true
+  user: danilo.horta
+  on:
+    branch: master
+  password:
+    secure: hh+9qUrRpLp2c0FABCGjUA6k9OG4V+41c7Su08xPu0aehD8AtphW7UztClK4M6EYemZ3L8nEeEoh72HiJwGSQq0Exhcbzzc8HaIVoIaMbtdkeGHn0ivpgPpoDll3jT6jnp0g4aC5cLPgWX546+GX6yxN3BDERfw7mS0zrF5zjJAYkKfpJ/n4z22ojv0P2fiPmMMWDBsYuear4vDy40iAG3y8POjvM3bd5ArjP6g7/afkKXVWyVDWWXCjp97yo2Jt66kqdbd8rwAHEQSuDxNzmqI2vbcD7I4RvdVXRIicKCKuZIgwa9GBat0tbGKcdXAQ1GHqvI2kjX5aWp4jdxBMyMoWdaxa9lqkjCNONWStZyE8aQt/T74Xc5oC5pt5Q6Ca6Gsw2NTTjzBvmzNVhqgNXZ1pCly2fEXZx3N6IHMxF+/y0YPlyHxBjrXZ4pfhW4OJho51wyrXg8xW1ct5K3APjU3Byh82r/ZaODJbnyESX0TjDRUyHzD5YnBwaZGEe2veMuy6aXjSv367SAidLmLdHEG4qatZRB21s+x1ezSOEdZ8+p0R74WNpOF/5NNjXLs1yd5f2/4KtO4zo1m5AHCCItAOWoVkP1V93be0h5xSKeJ+hWluX1gjBiAXh7Z1wM36eMQiJpYuiRKg976Drp9hfiYinNWWnsVfP8fxYK4CMEM=
+notifications:
+  email: false
