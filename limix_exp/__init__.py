@@ -4,8 +4,6 @@ from pkg_resources import get_distribution
 
 __version__ = get_distribution('limix-exp').version
 
-from . import macau
-
 def test():
     import os
     p = __import__('limix_exp').__path__[0]
