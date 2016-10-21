@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 import os
 from tabulate import tabulate
 from limix_util.pickle import SlotPickleMixin
@@ -178,5 +178,5 @@ def tasks_summary(tasks):
         d[a] = list(d[a])
         d[a].sort(key= lambda x: float(x) if isfloat(x) else x)
 
-    table = zip(d.keys(), [summarize(v) for v in d.values()])
+    table = list(zip(list(d.keys()), [summarize(v) for v in list(d.values())]))
     return '*** Task summary ***\n' + tabulate(table)

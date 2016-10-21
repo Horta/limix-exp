@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from argparse import ArgumentParser
 import re
 import inspect
@@ -119,7 +119,7 @@ class Workspace(object):
         for fp in fps:
             self._logger.info("Reading file %s.", fp)
             funcs = fetch_functions(fp, r'^auto_run_.+$')
-            auto_runs_map.update([(f.func_name[9:], f) for f in funcs])
+            auto_runs_map.update([(f.__name__[9:], f) for f in funcs])
         return auto_runs_map
 
     @property

@@ -1,4 +1,4 @@
-from __future__ import division, absolute_import
+
 import os
 from os.path import join
 import random
@@ -84,7 +84,7 @@ class Experiment(Cached):
 
     @cached
     def get_task_results(self):
-        return self._get_task_results().values()
+        return list(self._get_task_results().values())
 
     def get_task_result(self, task_id):
         return self._get_task_results().get(task_id)
@@ -113,7 +113,7 @@ class Experiment(Cached):
         return task.load_tasks(fpath)
 
     def get_tasks(self):
-        return self._get_tasks().values()
+        return list(self._get_tasks().values())
 
     @property
     def ntasks(self):
@@ -132,7 +132,7 @@ class Experiment(Cached):
     def generate_jobs(self, workspace_id):
         wid = workspace_id
         eid = self._experiment_id
-        jobs = [job.Job(wid, eid, i) for i in xrange(self.njobs)]
+        jobs = [job.Job(wid, eid, i) for i in range(self.njobs)]
         return jobs
 
     def do_task(self, task):
@@ -231,8 +231,8 @@ class Experiment(Cached):
     def get_jobs(self):
         folder = join(self.folder, 'job')
         jobs = job.collect_jobs(folder)
-        keys = jobs.keys()
-        vals = jobs.values()
+        keys = list(jobs.keys())
+        vals = list(jobs.values())
         return [j for (_, j) in sorted(zip(keys, vals))]
 
     def _get_job_task_ids(self, jobid):
@@ -375,6 +375,6 @@ class Experiment(Cached):
 def _namespace2task(workspace_id, experiment_id, n):
     n = vars(n)
     t = task.Task(workspace_id, experiment_id, n['task_id'])
-    for (k, v) in n.iteritems():
+    for (k, v) in list(n.items()):
         setattr(t, k, v)
     return t

@@ -1,10 +1,10 @@
 import os
-import ConfigParser
+import configparser
 
 def _conf():
     home = os.path.expanduser('~')
     fp = os.path.join(home, '.config', 'exp', 'config')
-    cp = ConfigParser.ConfigParser()
+    cp = configparser.ConfigParser()
     cp.read(fp)
     return cp
 
