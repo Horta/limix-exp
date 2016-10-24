@@ -24,7 +24,6 @@ before_install:
 install:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - source activate travisci
-- travis_retry conda install pycparser -y --name travisci
 before_script:
 - export PATH="$HOME/miniconda/bin:$PATH"
 - source activate travisci
@@ -37,13 +36,16 @@ script:
 - pushd /
 - python -c "import limix_exp; limix_exp.test()"
 - popd
-deploy:
-  provider: pypi
-  skip_cleanup: true
-  user: danilo.horta
-  on:
-    branch: master
-  password:
-    secure: hh+9qUrRpLp2c0FABCGjUA6k9OG4V+41c7Su08xPu0aehD8AtphW7UztClK4M6EYemZ3L8nEeEoh72HiJwGSQq0Exhcbzzc8HaIVoIaMbtdkeGHn0ivpgPpoDll3jT6jnp0g4aC5cLPgWX546+GX6yxN3BDERfw7mS0zrF5zjJAYkKfpJ/n4z22ojv0P2fiPmMMWDBsYuear4vDy40iAG3y8POjvM3bd5ArjP6g7/afkKXVWyVDWWXCjp97yo2Jt66kqdbd8rwAHEQSuDxNzmqI2vbcD7I4RvdVXRIicKCKuZIgwa9GBat0tbGKcdXAQ1GHqvI2kjX5aWp4jdxBMyMoWdaxa9lqkjCNONWStZyE8aQt/T74Xc5oC5pt5Q6Ca6Gsw2NTTjzBvmzNVhqgNXZ1pCly2fEXZx3N6IHMxF+/y0YPlyHxBjrXZ4pfhW4OJho51wyrXg8xW1ct5K3APjU3Byh82r/ZaODJbnyESX0TjDRUyHzD5YnBwaZGEe2veMuy6aXjSv367SAidLmLdHEG4qatZRB21s+x1ezSOEdZ8+p0R74WNpOF/5NNjXLs1yd5f2/4KtO4zo1m5AHCCItAOWoVkP1V93be0h5xSKeJ+hWluX1gjBiAXh7Z1wM36eMQiJpYuiRKg976Drp9hfiYinNWWnsVfP8fxYK4CMEM=
+branches:
+  only:
+  - master
 notifications:
   email: false
+deploy:
+  provider: pypi
+  user: dhorta
+  password:
+    secure: N0F0eMuZj3603130DOxnQdpmj+Xge0HKjW0ENLdj4dNJU3zi5IK0W+fvVNGbxNtjftv7M2jp+sHvn35Tl1lLwpGw0lJQDsenPYSQm10qr4/x6ZEhF8hOCl+K/hX1WL86JreTcO5y524T3dIiUntDP6rN5BSQWkTPzsgOEFHkC7nRLhMmdMPMdKVRIJd0jQUEYKxV25xzEYzCJKD0JYYBDYFrMd22RIRVxlUZgpjhsC3o8FuroCjM0qP8Zzj2UrRJNvYjaWKoNF/JnqSAiD6PQCHGJNwjdSV3Wd+tkEYHPh1ZrQMo2kXEyPPPtkfFu/7U8jInjIXlghH6CdOB0Rk4zWj8xtyC/4ajxXb8EaFTu7snpFsuQcTmQD1FTM+pKqCDyXIJdWHvx2+2ILCo75FITog1e+DqWK8cvh/Zeo9hq80t+dOHwXubP+Me+EDLlNA/g5Gd491WuqgIenhDXo04TQzy+6qk2VDO183+b4r2BGXtGn8Nut0fuUjLxns5mvYIaiwNn8FRjI22fZQbYeGvXak1VfxtQPFfRAaMifUdxj8HCtfCOR+J+LTPtw+2a1ybg14Y7gFXgP9eEtIVay4gjSZqkUjfr6BR+9fYjKLwZ3ihwEwg3h8OqSYzAVW2K67DhuNGwHXaOCdlQxrMN9OjAhqaZLjBq97KO6w20nxucrc=
+  on:
+    distributions: sdist bdist_wheel
+    repo: Horta/limix-exp
