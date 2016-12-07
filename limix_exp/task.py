@@ -114,7 +114,7 @@ def load_tasks(fpath, verbose=False):
                 print("Exist %s" % fpath)
         else:
             print("Does not exist %s" % fpath)
-        tasks = pickle_.unpickle(fpath)
+        tasks = pickle.unpickle(fpath)
         if verbose:
             print('   %d tasks found  ' % len(tasks))
     return tasks
@@ -122,15 +122,15 @@ def load_tasks(fpath, verbose=False):
 def store_tasks(tasks, fpath):
     if os.path.exists(fpath):
         return
-    pickle_.pickle({t.task_id:t for t in tasks}, fpath)
+    pickle.pickle({t.task_id:t for t in tasks}, fpath)
 
 def load_task_args(fpath):
-    return pickle_.unpickle(fpath)
+    return pickle.unpickle(fpath)
 
 def store_task_args(task_args, fpath):
     if os.path.exists(fpath):
         return
-    pickle_.pickle(task_args, fpath)
+    pickle.pickle(task_args, fpath)
 
 def collect_task_results(folder, force_cache=False):
     assert force_cache is False
@@ -144,13 +144,13 @@ def collect_task_results(folder, force_cache=False):
         ok = ok and ha == open(os.path.join(folder, '.folder_hash')).read(32)
         if ok:
             with BeginEnd('Unpickling tasks'):
-                return pickle_.unpickle(os.path.join(folder, 'all.pkl'))
+                return pickle.unpickle(os.path.join(folder, 'all.pkl'))
 
-    return pickle_.pickle_merge(folder)
+    return pickle.pickle_merge(folder)
 
 def store_task_results(task_results, fpath):
     with BeginEnd('Storing task results'):
-        pickle_.pickle({tr.task_id:tr for tr in task_results}, fpath)
+        pickle.pickle({tr.task_id:tr for tr in task_results}, fpath)
         print('   %d task results stored   ' % len(task_results))
 
 def tasks_summary(tasks):
