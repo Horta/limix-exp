@@ -21,7 +21,7 @@ def setup_package():
 
     metadata = dict(
         name='limix-exp',
-        version='1.0.2',
+        version='1.0.3',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",
