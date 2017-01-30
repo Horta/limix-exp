@@ -16,7 +16,8 @@ def setup_package():
     setup_requires = [] + pytest_runner
     install_requires = ['pytest', 'scipy>=0.17', 'numpy>=1.9',
                         'tabulate', 'limix_util', 'humanfriendly',
-                        'limix_plot', 'limix_lsf', 'hcache', 'limix_tool']
+                        'limix_plot', 'limix_lsf', 'limix_tool',
+                        'joblib']
     tests_require = install_requires
 
     metadata = dict(
