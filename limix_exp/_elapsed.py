@@ -20,5 +20,5 @@ class BeginEnd(object):
     def __exit__(self, *args):
         elapsed = time() - self._start
         if not self._silent:
-            stdout.write('%.2f s.' % elapsed)
+            stdout.write('%.2f s.\n' % elapsed)
             stdout.flush()
