@@ -29,8 +29,8 @@ def pickle_merge(folder):
             with BeginEnd('Copying files from %s' % sf):
                 make_sure_path_exists(join(tf, sf))
                 cp(join(folder, sf), join(tf, sf))
-        file_list = _get_file_list(tf)
 
+        file_list = _get_file_list(tf)
         out = _merge(file_list)
 
     with BeginEnd('Storing pickles'):
