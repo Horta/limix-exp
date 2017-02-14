@@ -4,6 +4,7 @@ from pickle_blosc import pickle, unpickle
 from pickle_mixin import PickleByName, SlotPickleMixin
 from tabulate import tabulate
 
+from ._elapsed import BeginEnd
 from ._path import folder_hash
 from ._pickle_files import pickle_merge
 
@@ -113,13 +114,13 @@ class TaskResult(SlotPickleMixin):
 
 
 def load_tasks(fpath, verbose=False):
-    print('Loading tasks')
     if os.path.exists(fpath):
         if verbose:
             print("Exist %s" % fpath)
     else:
         print("Does not exist %s" % fpath)
-    tasks = unpickle(fpath)
+    with BeginEnd('Loading tasks'):
+        tasks = unpickle(fpath)
     if verbose:
         print('   %d tasks found  ' % len(tasks))
     return tasks
@@ -189,7 +190,8 @@ def tasks_summary(tasks):
         d[a] = list(d[a])
         d[a].sort(key=lambda x: float(x) if _isfloat(x) else x)
 
-    table = list(zip(list(d.keys()), [_summarize(v) for v in list(d.values())]))
+    table = list(
+        zip(list(d.keys()), [_summarize(v) for v in list(d.values())]))
     return '*** Task summary ***\n' + tabulate(table)
 
 
@@ -200,9 +202,10 @@ def _isfloat(value):
     except ValueError:
         return False
 
+
 def _summarize(s, n=64):
     assert n > 6
     s = str(s)
     if len(s) < n:
         return s
-    return s[:int(n/2)-2] + ' ... ' + s[-int(math.ceil(n/2))+3:]
+    return s[:int(n / 2) - 2] + ' ... ' + s[-int(math.ceil(n / 2)) + 3:]
