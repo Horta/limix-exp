@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+from math import ceil
 from os.path import dirname, join
 
 from joblib import Parallel, delayed
@@ -321,9 +322,9 @@ class Experiment(Cached):
         table.append(['# jobs', str(self.njobs)])
         table.append(['# tasks', str(self.ntasks)])
 
-        import pdb; pdb.set_trace()
         jobs = self.get_jobs()
 
+        import pdb; pdb.set_trace()
         results = []
         size = int(ceil(len(jobs) / 100))
         niters = int(ceil(len(jobs) / size))
