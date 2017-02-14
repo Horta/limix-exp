@@ -323,12 +323,12 @@ class Experiment(Cached):
         table.append(['# jobs', str(self.njobs)])
         table.append(['# tasks', str(self.ntasks)])
 
-        jobs = self.get_jobs()
+        jobs = list(self.get_jobs())
 
-        import pdb; pdb.set_trace()
         results = []
         size = int(ceil(len(jobs) / 100))
         niters = int(ceil(len(jobs) / size))
+        import pdb; pdb.set_trace()
         with Parallel(n_jobs=32) as parallel:
             for i in tqdm(range(niters), 'Getting jobs'):
                 left = i * size
