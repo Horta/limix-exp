@@ -12,7 +12,8 @@ from limix_lsf.clusterrun import ClusterRun
 from tabulate import tabulate
 from tqdm import tqdm
 
-from . import job, task
+from . import task
+from .job import collect_jobs, store_job, load_job, Job
 from ._path import make_sure_path_exists, touch
 from .config import conf
 
@@ -133,7 +134,7 @@ class Experiment(Cached):
     def generate_jobs(self, workspace_id):
         wid = workspace_id
         eid = self._experiment_id
-        jobs = [job.Job(wid, eid, i) for i in range(self.njobs)]
+        jobs = [Job(wid, eid, i) for i in range(self.njobs)]
         return jobs
 
     def do_task(self, task):
@@ -152,7 +153,7 @@ class Experiment(Cached):
         for j in tqdm(jobs, desc='Storing jobs'):
             fp = self.job_path(j.jobid)
             make_sure_path_exists(dirname(fp))
-            job.store_job(j, fp)
+            store_job(j, fp)
 
     def job_path(self, jobid):
         fp = join(self.folder, 'job', self.split_folder(jobid))
@@ -169,7 +170,7 @@ class Experiment(Cached):
         task.store_task_args(task_args, fpath)
 
     def run_job(self, jobid, progress=True, dryrun=False, force=False):
-        job_ = job.load_job(self.job_path(jobid))
+        job_ = load_job(self.job_path(jobid))
 
         if job_.finished and not force:
             print("Job %d has already finished." % jobid)
@@ -178,7 +179,7 @@ class Experiment(Cached):
         task_results = job_.run(progress)
 
         if not dryrun:
-            job.store_job(job_, self.job_path(job_.jobid))
+            store_job(job_, self.job_path(job_.jobid))
             fp = self.task_result_path(job_.jobid)
             make_sure_path_exists(os.path.dirname(fp))
             task.store_task_results(task_results, fp)
@@ -222,12 +223,12 @@ class Experiment(Cached):
 
     @cached
     def get_job(self, jobid):
-        return job.load_job(self.job_path(jobid))
+        return load_job(self.job_path(jobid))
 
     @cached
     def get_jobs(self):
         folder = join(self.folder, 'job')
-        jobs = job.collect_jobs(folder)
+        jobs = collect_jobs(folder)
         keys = list(jobs.keys())
         vals = list(jobs.values())
         return [j for (_, j) in sorted(zip(keys, vals))]
