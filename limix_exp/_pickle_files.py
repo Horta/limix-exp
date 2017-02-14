@@ -7,7 +7,9 @@ from os.path import basename, isdir, join
 from pickle_blosc import pickle, unpickle
 from tqdm import tqdm
 
+from ._elapsed import BeginEnd
 from ._path import cp, folder_hash, make_sure_path_exists, temp_folder
+
 
 def pickle_merge(folder):
     """Merges pickle files and save it to `all.pkl`."""
@@ -30,8 +32,9 @@ def pickle_merge(folder):
 
         out = _merge(file_list)
 
-    print('Storing pickles...')
-    pickle(out, join(folder, 'all.pkl'))
+    with BeginEnd('Storing pickles'):
+        pickle(out, join(folder, 'all.pkl'))
+
     _save_cache(folder, ha)
 
     return out
