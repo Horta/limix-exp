@@ -48,6 +48,7 @@ def touch(fname, times=None):
 
 def folder_hash(folder, exclude_files=None):
     """Recursively hash all files in a folder and sum it up."""
+    import pdb; pdb.set_trace()
     if exclude_files is None:
         exclude_files = []
 
