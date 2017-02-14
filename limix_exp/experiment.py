@@ -1,21 +1,19 @@
-
-import os
-from os.path import join
-import random
 import logging
-from humanfriendly import format_size
-from humanfriendly import parse_size
-from tabulate import tabulate
+import os
+import random
+from os.path import dirname, join
+
+from hcache import Cached, cached
+from humanfriendly import format_size, parse_size
 from limix_lsf import clusterrun
 from limix_lsf.clusterrun import ClusterRun
-from limix_util import path as path_
-from limix_util.path import make_sure_path_exists
-from limix_util.report import BeginEnd, ProgressBar
-from hcache import Cached, cached
+from tabulate import tabulate
 from tqdm import tqdm
-from . import task
-from . import job
+
+from . import job, task
+from ._path import make_sure_path_exists, touch
 from .config import conf
+
 
 class Experiment(Cached):
     def __init__(self, workspace_id, experiment_id, properties):
@@ -95,9 +93,9 @@ class Experiment(Cached):
 
     @property
     def folder(self):
-        return join(conf.get('default', 'base_dir'),
-                    self._workspace_id,
-                    self._experiment_id)
+        return join(
+            conf.get('default', 'base_dir'), self._workspace_id,
+            self._experiment_id)
 
     @property
     def figures_folder(self):
@@ -106,7 +104,7 @@ class Experiment(Cached):
         return f
 
     def split_folder(self, jobid):
-        return str(int(jobid/1000))
+        return str(int(jobid / 1000))
 
     @cached
     def _get_tasks(self):
@@ -149,14 +147,10 @@ class Experiment(Cached):
         task.store_tasks(tasks, fpath)
 
     def _store_jobs(self, jobs):
-        with BeginEnd('Storing jobs'):
-            pb = ProgressBar(len(jobs))
-            for (i, j) in enumerate(jobs):
-                fp = self.job_path(j.jobid)
-                make_sure_path_exists(os.path.dirname(fp))
-                job.store_job(j, fp)
-                pb.update(i+1)
-            pb.finish()
+        for j in tqdm(jobs, desc='Storing jobs'):
+            fp = self.job_path(j.jobid)
+            make_sure_path_exists(dirname(fp))
+            job.store_job(j, fp)
 
     def job_path(self, jobid):
         fp = join(self.folder, 'job', self.split_folder(jobid))
@@ -202,8 +196,7 @@ class Experiment(Cached):
         if self.tasks_setup_done:
             tasks = self.get_tasks()
         else:
-            with BeginEnd('Generating tasks'):
-                tasks = self.generate_tasks()
+            tasks = self.generate_tasks()
             self._store_tasks(tasks)
 
         ntasks = len(tasks)
@@ -213,14 +206,15 @@ class Experiment(Cached):
             self.njobs = min(self.njobs, ntasks)
 
         if not self.are_init_jobs_files_generated:
-            with BeginEnd('Generating jobs'):
-                jobs = self.generate_jobs(self._workspace_id)
-                if len(jobs) == 0:
-                    raise Exception('No job has been generated.')
-                print('   %d generated jobs   ' % len(jobs))
+            jobs = self.generate_jobs(self._workspace_id)
+
+            if len(jobs) == 0:
+                raise Exception('No job has been generated.')
+
+            print('   %d generated jobs   ' % len(jobs))
             self._store_jobs(jobs)
             fp = join(self.folder, '.init_jobs_files_generated')
-            path_.touch(fp)
+            touch(fp)
 
         self.finish_setup_done = True
 
@@ -296,14 +290,14 @@ class Experiment(Cached):
         properties = self._properties
 
         methods = task_results[0].methods
-        err_msgs = {m:set() for m in methods}
+        err_msgs = {m: set() for m in methods}
         for tr in task_results:
             for method in methods:
                 s = err_msgs[method]
                 if tr.error_status != 0:
                     s.add(tr.error_msg(method))
 
-        ml = {m:properties[m]['label'] for m in methods}
+        ml = {m: properties[m]['label'] for m in methods}
 
         for m in methods:
             print('Error messages for %s:' % ml[m])
@@ -339,11 +333,10 @@ class Experiment(Cached):
                     bjobs_finished.append(j.get_bjob())
                 elif j.failed:
                     failed_jobids.append(j.jobid)
-                elif j.ispending():
+                elif j.get_bjob().ispending():
                     npend += 1
                 elif j.isrunning():
                     nrun += 1
-
 
         # bjobs_finished = [j.get_bjob() for j in self.get_jobs() if j.submitted and j.finished]
 
@@ -369,18 +362,30 @@ class Experiment(Cached):
 
         resource_info = [bj.resource_info() for bj in bjobs_finished]
 
-        max_memories = [r['max_memory'] for r in resource_info if r is not None and r['max_memory'] is not None]
+        max_memories = [
+            r['max_memory'] for r in resource_info
+            if r is not None and r['max_memory'] is not None
+        ]
         if len(max_memories) > 0:
             max_memory = max(max_memories)
         else:
             max_memory = None
-        req_memories = [r['req_memory'] for r in resource_info if r is not None and r['req_memory'] is not None]
+        req_memories = [
+            r['req_memory'] for r in resource_info
+            if r is not None and r['req_memory'] is not None
+        ]
         if len(req_memories) > 0:
             req_memory = max(req_memories)
         else:
             req_memory = None
-        table.append(['max used memory', format_size(max_memory) if max_memory is not None else 'n/a'])
-        table.append(['max req. memory', format_size(req_memory) if req_memory is not None else 'n/a'])
+        table.append([
+            'max used memory', format_size(max_memory)
+            if max_memory is not None else 'n/a'
+        ])
+        table.append([
+            'max req. memory', format_size(req_memory)
+            if req_memory is not None else 'n/a'
+        ])
 
         msg = tabulate(table)
 

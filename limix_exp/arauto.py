@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from .config import conf
 from . import task
 from . import workspace
-from limix_util.inspect import fetch_functions
+from ._inspect import fetch_functions
 import logging
 
 def _fetch_filter_file(script_filepath):

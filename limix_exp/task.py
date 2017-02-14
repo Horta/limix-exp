@@ -1,19 +1,18 @@
-
 import os
+
+from pickle_blosc import pickle, unpickle
+from pickle_mixin import PickleByName, SlotPickleMixin
 from tabulate import tabulate
-from limix_util.pickle import SlotPickleMixin
-from limix_util.pickle import PickleByName
-from limix_util import pickle
-from limix_util.path import folder_hash
-from limix_util.report import BeginEnd
-from limix_util.scalar import isfloat
-from limix_util.string import summarize
+
+from ._path import folder_hash
+from ._pickle_files import pickle_merge
+
 
 def extract_successes_and_failures(tasks):
     methods = tasks[0].get_result().methods
 
-    nsucs = {m:0 for m in methods}
-    nfails = {m:0 for m in methods}
+    nsucs = {m: 0 for m in methods}
+    nfails = {m: 0 for m in methods}
 
     for task in tasks:
         tr = task.get_result()
@@ -25,6 +24,7 @@ def extract_successes_and_failures(tasks):
 
     return dict(nsucs=nsucs, nfails=nfails)
 
+
 class TaskArgs(SlotPickleMixin):
     def __init__(self):
         super(TaskArgs, self).__init__()
@@ -35,6 +35,7 @@ class TaskArgs(SlotPickleMixin):
 
     def get_names(self):
         return self._names
+
 
 class Task(PickleByName):
     def __init__(self, workspace_id, experiment_id, task_id):
@@ -59,9 +60,12 @@ class Task(PickleByName):
             return None
         return e.get_task_result(self.task_id)
 
+
 class TaskResult(SlotPickleMixin):
-    __slots__ = ['total_elapsed', 'workspace_id', 'experiment_id', 'task_id',
-                 '_elapsed', '_error_status', '_error_msg', '_methods']
+    __slots__ = [
+        'total_elapsed', 'workspace_id', 'experiment_id', 'task_id',
+        '_elapsed', '_error_status', '_error_msg', '_methods'
+    ]
 
     def __init__(self, workspace_id, experiment_id, task_id):
         super(TaskResult, self).__init__()
@@ -107,6 +111,7 @@ class TaskResult(SlotPickleMixin):
     def _add_method(self, method):
         self._methods.add(method)
 
+
 def load_tasks(fpath, verbose=False):
     with BeginEnd('Loading tasks', silent=not verbose):
         if os.path.exists(fpath):
@@ -114,23 +119,27 @@ def load_tasks(fpath, verbose=False):
                 print("Exist %s" % fpath)
         else:
             print("Does not exist %s" % fpath)
-        tasks = pickle.unpickle(fpath)
+        tasks = unpickle(fpath)
         if verbose:
             print('   %d tasks found  ' % len(tasks))
     return tasks
 
+
 def store_tasks(tasks, fpath):
     if os.path.exists(fpath):
         return
-    pickle.pickle({t.task_id:t for t in tasks}, fpath)
+    pickle({t.task_id: t for t in tasks}, fpath)
+
 
 def load_task_args(fpath):
-    return pickle.unpickle(fpath)
+    return unpickle(fpath)
+
 
 def store_task_args(task_args, fpath):
     if os.path.exists(fpath):
         return
-    pickle.pickle(task_args, fpath)
+    pickle(task_args, fpath)
+
 
 def collect_task_results(folder, force_cache=False):
     assert force_cache is False
@@ -144,14 +153,16 @@ def collect_task_results(folder, force_cache=False):
         ok = ok and ha == open(os.path.join(folder, '.folder_hash')).read(32)
         if ok:
             with BeginEnd('Unpickling tasks'):
-                return pickle.unpickle(os.path.join(folder, 'all.pkl'))
+                return unpickle(os.path.join(folder, 'all.pkl'))
 
-    return pickle.pickle_merge(folder)
+    return pickle_merge(folder)
+
 
 def store_task_results(task_results, fpath):
     with BeginEnd('Storing task results'):
-        pickle.pickle({tr.task_id:tr for tr in task_results}, fpath)
+        pickle({tr.task_id: tr for tr in task_results}, fpath)
         print('   %d task results stored   ' % len(task_results))
+
 
 def tasks_summary(tasks):
     from collections import OrderedDict
@@ -176,7 +187,22 @@ def tasks_summary(tasks):
 
     for a in args:
         d[a] = list(d[a])
-        d[a].sort(key= lambda x: float(x) if isfloat(x) else x)
+        d[a].sort(key=lambda x: float(x) if _isfloat(x) else x)
 
-    table = list(zip(list(d.keys()), [summarize(v) for v in list(d.values())]))
+    table = list(zip(list(d.keys()), [_summarize(v) for v in list(d.values())]))
     return '*** Task summary ***\n' + tabulate(table)
+
+
+def _isfloat(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+def _summarize(s, n=64):
+    assert n > 6
+    s = str(s)
+    if len(s) < n:
+        return s
+    return s[:int(n/2)-2] + ' ... ' + s[-int(math.ceil(n/2))+3:]

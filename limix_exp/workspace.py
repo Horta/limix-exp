@@ -1,24 +1,27 @@
-
-from argparse import ArgumentParser
-import re
-import inspect
-import os
-from os.path import join
-import json
 import imp
-import shutil
-from .config import conf
-from . import experiment
-from limix_util.report import BeginEnd
-from limix_util.inspect import fetch_classes, fetch_functions
-import limix_lsf
+import inspect
+import json
 import logging
+import os
+import re
+import shutil
+from argparse import ArgumentParser
+from os.path import join
+
+import limix_lsf
+
+from . import experiment
+from ._inspect import fetch_classes, fetch_functions
+from .config import conf
 
 _workspaces = dict()
+
+
 def get_workspace(workspace_id):
     if workspace_id not in _workspaces:
         _workspaces[workspace_id] = Workspace(workspace_id)
     return _workspaces[workspace_id]
+
 
 def get_experiment(workspace_id, experiment_id):
     w = get_workspace(workspace_id)
@@ -28,18 +31,21 @@ def get_experiment(workspace_id, experiment_id):
     e = w.get_experiment(experiment_id)
     if e is None:
         raise Exception('There is no experiment '
-                        'called %s in the workspace %s.'
-                        % (experiment_id, workspace_id))
+                        'called %s in the workspace %s.' %
+                        (experiment_id, workspace_id))
 
     return e
+
 
 def exists(workspace_id):
     folder = join(conf.get('default', 'base_dir'), workspace_id)
     return os.path.exists(folder)
 
+
 def get_workspace_ids():
     files = os.listdir(conf.get('default', 'base_dir'))
     return [f for f in files if os.path.isdir(f)]
+
 
 class Workspace(object):
     def __init__(self, workspace_id):
@@ -94,7 +100,7 @@ class Workspace(object):
     def _get_auto_run(self, experiment_id):
         auto_runs_map = self._get_auto_runs_map()
         # if experiment_id not in auto_runs_map:
-            # return None
+        # return None
         return auto_runs_map[experiment_id]
 
     def get_experiment(self, experiment_id):
@@ -182,7 +188,8 @@ class Workspace(object):
 
     def _call_job(self, args):
         experiment_id = args.experiment_id
-        (experiment_id, auto_run_func) = self._get_generate_tasks(experiment_id)
+        (experiment_id,
+         auto_run_func) = self._get_generate_tasks(experiment_id)
         exp = self.get_experiment(experiment_id)
         exp.script_filepath = self._script_filepath
         auto_run_func(exp)
@@ -210,9 +217,11 @@ class Workspace(object):
         from tabulate import tabulate
 
         files = os.listdir(self.folder)
-        exp_ids = [f for f in files if (os.path.isdir(join(self.folder, f)) and
-                                        join(self.folder, f,
-                                             'generate_tasks.txt'))]
+        exp_ids = [
+            f for f in files
+            if (os.path.isdir(join(self.folder, f)) and join(
+                self.folder, f, 'generate_tasks.txt'))
+        ]
 
         auto_run_err = set()
         tasks_setup_err = set()
@@ -239,7 +248,6 @@ class Workspace(object):
         table.append(['auto_run files', auto_run_fps])
         table.append(['# experiments', str(len(exp_ids))])
 
-
         table.append(["# auto_run err", len(auto_run_err)])
         table.append(["# tasks setup err", len(tasks_setup_err)])
         table.append(["# finish setup err", len(finish_setup_err)])
@@ -249,6 +257,7 @@ class Workspace(object):
         msg = tabulate(table)
 
         return msg
+
 
 def _get_auto_runs_map(script_filepath):
     script_name = os.path.basename(script_filepath)
@@ -261,6 +270,6 @@ def _get_auto_runs_map(script_filepath):
         m = re.match(r'^auto_run_(.+)$', func_name)
         if m:
             exp_name = m.group(1)
-            auto_run_map.update({exp_name:func[1]})
+            auto_run_map.update({exp_name: func[1]})
 
     return auto_run_map

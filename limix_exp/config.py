@@ -1,5 +1,10 @@
 import os
-import configparser
+
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
 
 def _conf():
     home = os.path.expanduser('~')
@@ -7,5 +12,6 @@ def _conf():
     cp = configparser.ConfigParser()
     cp.read(fp)
     return cp
+
 
 conf = _conf()

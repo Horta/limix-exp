@@ -1,11 +1,15 @@
-import numpy as np
 import os
-from limix_lsf import clusterrun
-from limix_util import pickle as pickle_
-from limix_util.report import BeginEnd, ProgressBar
-from limix_util.time import Timer
-from limix_util.path import folder_hash
+
+import numpy as np
+
 from hcache import Cached, cached
+from limix_lsf import clusterrun
+from pickle_blosc import pickle, unpickle
+
+from ._path import folder_hash
+from ._pickle_files import pickle_merge
+from ._timer import Timer
+
 
 class Job(Cached):
     def __init__(self, workspace_id, experiment_id, jobid):
@@ -25,7 +29,6 @@ class Job(Cached):
             stats = bjob.exit_status()
             return (stats is not None and stats != 0)
         return False
-
 
     @cached
     def get_bjob(self):
@@ -66,7 +69,7 @@ class Job(Cached):
                 tr = task.run()
             tr.total_elapsed = timer.elapsed
             if progress:
-                p.update(i+1)
+                p.update(i + 1)
             task_results.append(tr)
 
         if progress:
@@ -99,16 +102,20 @@ class Job(Cached):
 
         return tabulate(table)
 
+
 def store_jobs(jobs, fpath):
     with BeginEnd('Storing jobs'):
-        pickle_.pickle({t.jobid:t for t in jobs}, fpath)
+        pickle({t.jobid: t for t in jobs}, fpath)
         print('   %d jobs stored   ' % len(jobs))
 
+
 def store_job(job, fpath):
-    pickle_.pickle(job, fpath)
+    pickle(job, fpath)
+
 
 def load_job(fpath):
-    return pickle_.unpickle(fpath)
+    return unpickle(fpath)
+
 
 def collect_jobs(folder):
     exist = os.path.exists(os.path.join(folder, 'all.pkl'))
@@ -120,6 +127,6 @@ def collect_jobs(folder):
         ok = ok and ha == open(os.path.join(folder, '.folder_hash')).read(32)
         if ok:
             with BeginEnd('Unpickling jobs'):
-                return pickle_.unpickle(os.path.join(folder, 'all.pkl'))
+                return unpickle(os.path.join(folder, 'all.pkl'))
 
-    return pickle_.pickle_merge(folder)
+    return pickle_merge(folder)
