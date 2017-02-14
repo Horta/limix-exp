@@ -47,15 +47,14 @@ def touch(fname, times=None):
 
 
 def folder_hash(folder, exclude_files=None):
-    """Recursively compute the hash of all files in a folder and sum it up.
-    """
+    """Recursively hash all files in a folder and sum it up."""
     if exclude_files is None:
         exclude_files = []
 
     if not _bin_exists('md5deep'):
         raise EnvironmentError("Couldn't not find md5deep.")
 
-    print("folder_hash...")
+    print("Hashing folder %s..." % folder)
     out = subprocess.check_output('md5deep -r %s' % folder, shell=True)
     lines = sorted(out.strip(b'\n').split(b'\n'))
 

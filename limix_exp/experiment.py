@@ -335,7 +335,7 @@ class Experiment(Cached):
                     failed_jobids.append(j.jobid)
                 elif j.get_bjob().ispending():
                     npend += 1
-                elif j.isrunning():
+                elif j.get_bjob().isrunning():
                     nrun += 1
 
         # bjobs_finished = [j.get_bjob() for j in self.get_jobs() if j.submitted and j.finished]
