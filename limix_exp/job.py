@@ -104,9 +104,9 @@ class Job(Cached):
 
 
 def store_jobs(jobs, fpath):
-    with BeginEnd('Storing jobs'):
-        pickle({t.jobid: t for t in jobs}, fpath)
-        print('   %d jobs stored   ' % len(jobs))
+    print('Storing jobs...')
+    pickle({t.jobid: t for t in jobs}, fpath)
+    print('   %d jobs stored   ' % len(jobs))
 
 
 def store_job(job, fpath):
@@ -126,7 +126,7 @@ def collect_jobs(folder):
         ok = os.path.exists(fh)
         ok = ok and ha == open(os.path.join(folder, '.folder_hash')).read(32)
         if ok:
-            with BeginEnd('Unpickling jobs'):
-                return unpickle(os.path.join(folder, 'all.pkl'))
+            print('Unpickling jobs')
+            return unpickle(os.path.join(folder, 'all.pkl'))
 
     return pickle_merge(folder)

@@ -113,15 +113,15 @@ class TaskResult(SlotPickleMixin):
 
 
 def load_tasks(fpath, verbose=False):
-    with BeginEnd('Loading tasks', silent=not verbose):
-        if os.path.exists(fpath):
-            if verbose:
-                print("Exist %s" % fpath)
-        else:
-            print("Does not exist %s" % fpath)
-        tasks = unpickle(fpath)
+    print('Loading tasks')
+    if os.path.exists(fpath):
         if verbose:
-            print('   %d tasks found  ' % len(tasks))
+            print("Exist %s" % fpath)
+    else:
+        print("Does not exist %s" % fpath)
+    tasks = unpickle(fpath)
+    if verbose:
+        print('   %d tasks found  ' % len(tasks))
     return tasks
 
 
@@ -152,16 +152,16 @@ def collect_task_results(folder, force_cache=False):
         ok = os.path.exists(fh)
         ok = ok and ha == open(os.path.join(folder, '.folder_hash')).read(32)
         if ok:
-            with BeginEnd('Unpickling tasks'):
-                return unpickle(os.path.join(folder, 'all.pkl'))
+            print('Unpickling tasks')
+            return unpickle(os.path.join(folder, 'all.pkl'))
 
     return pickle_merge(folder)
 
 
 def store_task_results(task_results, fpath):
-    with BeginEnd('Storing task results'):
-        pickle({tr.task_id: tr for tr in task_results}, fpath)
-        print('   %d task results stored   ' % len(task_results))
+    print('Storing task results')
+    pickle({tr.task_id: tr for tr in task_results}, fpath)
+    print('   %d task results stored   ' % len(task_results))
 
 
 def tasks_summary(tasks):

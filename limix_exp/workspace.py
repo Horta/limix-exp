@@ -61,8 +61,8 @@ class Workspace(object):
         e = self.get_experiment(experiment_id)
         e.kill_bjobs()
         if os.path.exists(e.folder):
-            with BeginEnd('Removing folder'):
-                shutil.rmtree(e.folder)
+            print('Removing folder')
+            shutil.rmtree(e.folder)
 
     def get_properties(self):
         try:
@@ -178,8 +178,8 @@ class Workspace(object):
         if len(experiment_id) == 0:
             print('Nothing to remove.')
             return
-        with BeginEnd('Removing folder'):
-            shutil.rmtree(join(self.folder, experiment_id))
+        print('Removing folder')
+        shutil.rmtree(join(self.folder, experiment_id))
 
         if jobs_too:
             bgroup = '/%s/%s' % (self._workspace_id, experiment_id)
