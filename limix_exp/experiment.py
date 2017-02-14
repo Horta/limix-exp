@@ -12,6 +12,7 @@ from limix_util import path as path_
 from limix_util.path import make_sure_path_exists
 from limix_util.report import BeginEnd, ProgressBar
 from hcache import Cached, cached
+from tqdm import tqdm
 from . import task
 from . import job
 from .config import conf
@@ -321,53 +322,71 @@ class Experiment(Cached):
         return '/' + self._workspace_id + '/' + self._experiment_id
 
     def __str__(self):
-        with BeginEnd('Compiling info table'):
-            table = []
-            table.append(['# jobs', str(self.njobs)])
-            table.append(['# tasks', str(self.ntasks)])
+        table = []
+        table.append(['# jobs', str(self.njobs)])
+        table.append(['# tasks', str(self.ntasks)])
 
-            bjobs_finished = [j.get_bjob() for j in self.get_jobs() if j.submitted and j.finished]
+        bjobs_finished = []
+        failed_jobids = []
+        nsub = 0
+        npend = 0
+        nrun = 0
 
-            nsub = sum([1 for j in self.get_jobs() if j.submitted])
-            table.append(['# submitted jobs', str(nsub)])
+        for j in tqdm(self.get_jobs(), descr='Getting jobs'):
+            if j.submitted:
+                nsub += 1
+                if j.finished:
+                    bjobs_finished.append(j.get_bjob())
+                elif j.failed:
+                    failed_jobids.append(j.jobid)
+                elif j.ispending():
+                    npend += 1
+                elif j.isrunning():
+                    nrun += 1
 
-            npend = sum([1 for j in self.get_jobs() if (j.submitted and
-                                                        j.get_bjob().ispending()
-                                                       )])
-            table.append(['# pending jobs', str(npend)])
 
-            nrun = sum([1 for j in self.get_jobs() if (j.submitted and
-                                                       j.get_bjob().isrunning()
-                                                      )])
-            table.append(['# running jobs', str(nrun)])
+        # bjobs_finished = [j.get_bjob() for j in self.get_jobs() if j.submitted and j.finished]
 
-            nfin = sum([1 for j in self.get_jobs() if j.finished])
-            table.append(['# finished jobs', str(nfin)])
+        # nsub = sum([1 for j in self.get_jobs() if j.submitted])
+        table.append(['# submitted jobs', str(nsub)])
 
-            failed_jobids = [j.jobid for j in self.get_jobs() if j.failed]
-            nfail = len(failed_jobids)
-            table.append(['# failed jobs', str(nfail)])
+        # npend = sum([1 for j in self.get_jobs() if (j.submitted and
+        #                                             j.get_bjob().ispending()
+        #                                            )])
+        table.append(['# pending jobs', str(npend)])
 
-            resource_info = [bj.resource_info() for bj in bjobs_finished]
+        # nrun = sum([1 for j in self.get_jobs() if (j.submitted and
+        #                                            j.get_bjob().isrunning()
+        #                                           )])
+        table.append(['# running jobs', str(nrun)])
 
-            max_memories = [r['max_memory'] for r in resource_info if r is not None and r['max_memory'] is not None]
-            if len(max_memories) > 0:
-                max_memory = max(max_memories)
-            else:
-                max_memory = None
-            req_memories = [r['req_memory'] for r in resource_info if r is not None and r['req_memory'] is not None]
-            if len(req_memories) > 0:
-                req_memory = max(req_memories)
-            else:
-                req_memory = None
-            table.append(['max used memory', format_size(max_memory) if max_memory is not None else 'n/a'])
-            table.append(['max req. memory', format_size(req_memory) if req_memory is not None else 'n/a'])
+        nfin = len(bjobs_finished)
+        table.append(['# finished jobs', str(nfin)])
 
-            msg = tabulate(table)
+        # failed_jobids = [j.jobid for j in self.get_jobs() if j.failed]
+        nfail = len(failed_jobids)
+        table.append(['# failed jobs', str(nfail)])
 
-            if nfail > 0:
-                msg += '\nFailed jobs: ' + str(failed_jobids)
-                msg += '\n'
+        resource_info = [bj.resource_info() for bj in bjobs_finished]
+
+        max_memories = [r['max_memory'] for r in resource_info if r is not None and r['max_memory'] is not None]
+        if len(max_memories) > 0:
+            max_memory = max(max_memories)
+        else:
+            max_memory = None
+        req_memories = [r['req_memory'] for r in resource_info if r is not None and r['req_memory'] is not None]
+        if len(req_memories) > 0:
+            req_memory = max(req_memories)
+        else:
+            req_memory = None
+        table.append(['max used memory', format_size(max_memory) if max_memory is not None else 'n/a'])
+        table.append(['max req. memory', format_size(req_memory) if req_memory is not None else 'n/a'])
+
+        msg = tabulate(table)
+
+        if nfail > 0:
+            msg += '\nFailed jobs: ' + str(failed_jobids)
+            msg += '\n'
 
         return msg
 
