@@ -341,29 +341,17 @@ class Experiment(Cached):
                 elif j.get_bjob().isrunning():
                     nrun += 1
 
-        # bjobs_finished = [j.get_bjob() for j in self.get_jobs() if j.submitted and j.finished]
-
-        # nsub = sum([1 for j in self.get_jobs() if j.submitted])
         table.append(['# submitted jobs', str(nsub)])
 
-        # npend = sum([1 for j in self.get_jobs() if (j.submitted and
-        #                                             j.get_bjob().ispending()
-        #                                            )])
         table.append(['# pending jobs', str(npend)])
 
-        # nrun = sum([1 for j in self.get_jobs() if (j.submitted and
-        #                                            j.get_bjob().isrunning()
-        #                                           )])
         table.append(['# running jobs', str(nrun)])
 
         nfin = len(bjobs_finished)
         table.append(['# finished jobs', str(nfin)])
 
-        # failed_jobids = [j.jobid for j in self.get_jobs() if j.failed]
         nfail = len(failed_jobids)
         table.append(['# failed jobs', str(nfail)])
-
-        # resource_info = [bj.resource_info() for bj in bjobs_finished]
 
         max_memories = [
             r['max_memory'] for r in resource_info
