@@ -322,6 +322,7 @@ class Experiment(Cached):
 
         bjobs_finished = []
         failed_jobids = []
+        resource_info = []
         nsub = 0
         npend = 0
         nrun = 0
@@ -330,7 +331,9 @@ class Experiment(Cached):
             if j.submitted:
                 nsub += 1
                 if j.finished:
-                    bjobs_finished.append(j.get_bjob())
+                    bj = j.get_bjob()
+                    bjobs_finished.append(bj)
+                    resource_info.append(bj.resource_info())
                 elif j.failed:
                     failed_jobids.append(j.jobid)
                 elif j.get_bjob().ispending():
@@ -360,7 +363,7 @@ class Experiment(Cached):
         nfail = len(failed_jobids)
         table.append(['# failed jobs', str(nfail)])
 
-        resource_info = [bj.resource_info() for bj in bjobs_finished]
+        # resource_info = [bj.resource_info() for bj in bjobs_finished]
 
         max_memories = [
             r['max_memory'] for r in resource_info
