@@ -332,7 +332,7 @@ class Experiment(Cached):
         npend = 0
         nrun = 0
 
-        for j in tqdm(self.get_jobs(), descr='Getting jobs'):
+        for j in tqdm(self.get_jobs(), desc='Getting jobs'):
             if j.submitted:
                 nsub += 1
                 if j.finished:
