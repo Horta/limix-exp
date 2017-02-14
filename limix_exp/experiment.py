@@ -3,6 +3,7 @@ import os
 import random
 from os.path import dirname, join
 
+from joblib import Parallel, delayed
 from hcache import Cached, cached
 from humanfriendly import format_size, parse_size
 from limix_lsf import clusterrun
@@ -320,26 +321,33 @@ class Experiment(Cached):
         table.append(['# jobs', str(self.njobs)])
         table.append(['# tasks', str(self.ntasks)])
 
-        bjobs_finished = []
-        failed_jobids = []
-        resource_info = []
-        nsub = 0
-        npend = 0
-        nrun = 0
+        import pdb; pdb.set_trace()
+        jobs = self.get_jobs()
 
-        for j in tqdm(self.get_jobs(), desc='Getting jobs'):
-            if j.submitted:
-                nsub += 1
-                if j.finished:
-                    bj = j.get_bjob()
-                    bjobs_finished.append(bj)
-                    resource_info.append(bj.resource_info())
-                elif j.failed:
-                    failed_jobids.append(j.jobid)
-                elif j.get_bjob().ispending():
-                    npend += 1
-                elif j.get_bjob().isrunning():
-                    nrun += 1
+        results = []
+        size = int(ceil(len(jobs) / 100))
+        niters = int(ceil(len(jobs) / size))
+        with Parallel(n_jobs=32) as parallel:
+            for i in tqdm(range(niters), 'Getting jobs'):
+                left = i * size
+                right = min((i + 1) * size, len(jobs))
+                jslice = jobs[left:right]
+                r = parallel(delayed(_get_job_info)(j) for j in jslice)
+            results += r
+
+        # for j in tqdm(self.get_jobs(), desc='Getting jobs'):
+        #     if j.submitted:
+        #         nsub += 1
+        #         if j.finished:
+        #             bj = j.get_bjob()
+        #             bjobs_finished.append(bj)
+        #             resource_info.append(bj.resource_info())
+        #         elif j.failed:
+        #             failed_jobids.append(j.jobid)
+        #         elif j.get_bjob().ispending():
+        #             npend += 1
+        #         elif j.get_bjob().isrunning():
+        #             nrun += 1
 
         table.append(['# submitted jobs', str(nsub)])
 
@@ -393,3 +401,30 @@ def _namespace2task(workspace_id, experiment_id, n):
     for (k, v) in list(n.items()):
         setattr(t, k, v)
     return t
+
+def _get_job_info(j):
+    d = dict(status=None, bjob=None, jobid=-1, resource_info=None)
+
+    if j.submitted:
+        if j.finished:
+            d['status'] = 'finished'
+            bj = j.get_bjob()
+            d['bjob'] = bj
+            d['resource_info'] = bj.resource_info()
+
+        elif j.failed:
+            d['status'] = 'failed'
+            d['jobid'] = j.jobid
+
+        elif j.get_bjob().ispending():
+            d['status'] = 'pending'
+
+        elif j.get_bjob().isrunning():
+            d['status'] = 'running'
+
+        else:
+            d['status'] = 'unknown'
+    else:
+        d['status'] = 'waiting'
+
+    return d
