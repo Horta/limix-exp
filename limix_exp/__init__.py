@@ -3,6 +3,8 @@ from __future__ import absolute_import as _absolute_import
 from pkg_resources import get_distribution as _get_distribution
 from pkg_resources import DistributionNotFound as _DistributionNotFound
 
+from .task import TaskResult
+
 try:
     __version__ = _get_distribution('limix_exp').version
 except _DistributionNotFound:
@@ -24,3 +26,5 @@ def test():
         print("Congratulations. All tests have passed!")
 
     return return_code
+
+__all__ = ['__version__', 'test', 'TaskResult']
