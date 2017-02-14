@@ -334,7 +334,7 @@ class Experiment(Cached):
                 right = min((i + 1) * size, len(jobs))
                 jslice = jobs[left:right]
                 r = parallel(delayed(_get_job_info)(j) for j in jslice)
-            results += r
+                results += list(r)
 
         # for j in tqdm(self.get_jobs(), desc='Getting jobs'):
         #     if j.submitted:
