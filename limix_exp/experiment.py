@@ -328,15 +328,14 @@ class Experiment(Cached):
         results = []
         size = int(ceil(len(jobs) / 100))
         niters = int(ceil(len(jobs) / size))
-        # with Parallel(n_jobs=32) as parallel:
-        import pdb; pdb.set_trace()
-        for i in tqdm(range(niters), 'Getting jobs'):
-            left = i * size
-            right = min((i + 1) * size, len(jobs))
-            jslice = jobs[left:right]
-            # r = parallel(delayed(_get_job_info)(j) for j in jslice)
-            r = map(_get_job_info, jslice)
-            results += list(r)
+        with Parallel(n_jobs=2) as parallel:
+            for i in tqdm(range(niters), 'Getting jobs'):
+                left = i * size
+                right = min((i + 1) * size, len(jobs))
+                jslice = jobs[left:right]
+                r = parallel(delayed(_get_job_info)(j) for j in jslice)
+                # r = map(_get_job_info, jslice)
+                results += list(r)
 
         # for j in tqdm(self.get_jobs(), desc='Getting jobs'):
         #     if j.submitted:
