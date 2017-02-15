@@ -199,7 +199,8 @@ class Experiment(object):
         if self.tasks_setup_done:
             tasks = self.get_tasks()
         else:
-            tasks = self.generate_tasks()
+            tasks = list(tqdm(self.generate_tasks(),
+                              desc='Generating tasks'))
             self._store_tasks(tasks)
 
         ntasks = len(tasks)
