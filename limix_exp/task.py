@@ -115,6 +115,7 @@ class TaskResult(SlotPickleMixin):
 
 @cached(cache={})
 def load_tasks(fpath):
+    print(fpath)
     with BeginEnd('Loading tasks'):
         tasks = unpickle(fpath)
     return tasks

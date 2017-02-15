@@ -109,7 +109,6 @@ class Experiment(object):
     def split_folder(self, jobid):
         return str(int(jobid / 1000))
 
-    # @cachedmethod(attrgetter('_cache'))
     def _get_tasks(self):
         fpath = join(self.folder, 'tasks.pkl')
         return task.load_tasks(fpath)
