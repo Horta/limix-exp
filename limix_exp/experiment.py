@@ -197,7 +197,7 @@ class Experiment(object):
         self._store_task_args(ta)
 
         if self.tasks_setup_done:
-            tasks = self.get_tasks()
+            tasks = list(self.get_tasks())
         else:
             tasks = list(tqdm(self.generate_tasks(),
                               desc='Generating tasks'))
