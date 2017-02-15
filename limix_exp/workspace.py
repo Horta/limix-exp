@@ -114,8 +114,7 @@ class Workspace(object):
         return join(conf.get('default', 'base_dir'), self._workspace_id)
 
     def _get_auto_run(self, experiment_id):
-        if experiment_id not in self._auto_runs_map:
-            self._auto_runs_map[experiment_id] = self._get_auto_runs_map()
+        self._load_auto_runs()
         return self._auto_runs_map[experiment_id]
 
     def get_experiment(self, experiment_id):
@@ -134,14 +133,13 @@ class Workspace(object):
         self._experiments[experiment_id].auto_run_done = True
         self._experiments[experiment_id].finish_setup()
 
-    def _get_auto_runs_map(self):
+    def _load_auto_runs(self):
         fps = self._auto_run_filepaths()
-        auto_runs_map = dict()
         for fp in fps:
             self._logger.info("Reading file %s.", fp)
             funcs = fetch_functions(fp, r'^auto_run_.+$')
-            auto_runs_map.update([(f.__name__[9:], f) for f in funcs])
-        return auto_runs_map
+            self._auto_runs_map.update([(f.__name__[9:], f) for f in funcs])
+        return self._auto_runs_map
 
     @property
     def dataset_folder(self):
