@@ -11,6 +11,7 @@ from os.path import join
 import limix_lsf
 
 from . import experiment
+from ._elapsed import BeginEnd
 from ._inspect import fetch_classes, fetch_functions
 from .config import conf
 
@@ -61,8 +62,8 @@ class Workspace(object):
         e = self.get_experiment(experiment_id)
         e.kill_bjobs()
         if os.path.exists(e.folder):
-            print('Removing folder')
-            shutil.rmtree(e.folder)
+            with BeginEnd("Removing folder %s" % e.folder):
+                shutil.rmtree(e.folder)
 
     def get_properties(self):
         try:
@@ -178,8 +179,9 @@ class Workspace(object):
         if len(experiment_id) == 0:
             print('Nothing to remove.')
             return
-        print('Removing folder')
-        shutil.rmtree(join(self.folder, experiment_id))
+        folder = join(self.folder, experiment_id)
+        with BeginEnd("Removing folder %s" % folder):
+            shutil.rmtree(folder)
 
         if jobs_too:
             bgroup = '/%s/%s' % (self._workspace_id, experiment_id)
