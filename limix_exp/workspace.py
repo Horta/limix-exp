@@ -6,7 +6,8 @@ import re
 import shutil
 from argparse import ArgumentParser
 from os import listdir, system
-from os.path import basename, exists, isdir, join, splitext
+from os.path import basename, isdir, join, splitext
+from os.path import exists as _exists
 
 import limix_lsf
 from tqdm import tqdm
@@ -42,7 +43,7 @@ def get_experiment(workspace_id, experiment_id):
 
 def exists(workspace_id):
     folder = join(conf.get('default', 'base_dir'), workspace_id)
-    return exists(folder)
+    return _exists(folder)
 
 
 def get_workspace_ids():
@@ -64,7 +65,7 @@ class Workspace(object):
     def rm_experiment(self, experiment_id):
         e = self.get_experiment(experiment_id)
         e.kill_bjobs()
-        if exists(e.folder):
+        if _exists(e.folder):
             for (dir_, _, files) in walk(e.folder):
                 if dir_ == e.folder:
                     continue
@@ -148,7 +149,7 @@ class Workspace(object):
 
     def _auto_run_filepaths(self):
         f = join(self.folder, 'auto_run.json')
-        if not exists(f):
+        if not _exists(f):
             self._logger.warn("File %s does not exist.", f)
             return []
         with open(f) as json_file:
@@ -198,7 +199,7 @@ class Workspace(object):
 
         if jobs_too:
             bgroup = '/%s/%s' % (self._workspace_id, experiment_id)
-            if exists(bgroup):
+            if _exists(bgroup):
                 limix_lsf.util.kill_group(bgroup, True)
 
     def _call_job(self, args):
