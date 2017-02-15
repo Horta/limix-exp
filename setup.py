@@ -16,13 +16,13 @@ def setup_package():
     setup_requires = [] + pytest_runner
     install_requires = [
         'pytest', 'scipy>=0.17', 'numpy>=1.9', 'tabulate', 'humanfriendly',
-        'pickle-mixin', 'pickle-blosc', 'limix-lsf', 'joblib'
+        'pickle-mixin', 'pickle-blosc', 'limix-lsf', 'joblib', 'tqdm'
     ]
     tests_require = ['pytest']
 
     metadata = dict(
         name='limix-exp',
-        version='1.0.5.dev0',
+        version='1.0.5.dev1',
         maintainer="Danilo Horta",
         maintainer_email="horta@ebi.ac.uk",
         license="MIT",
