@@ -21,25 +21,26 @@ def _fetch_filter(fp_or_code):
 def do_root():
     print(conf.get('default', 'base_dir'))
 
-def do_see(args, rargs):
+def do_see(args, _):
 
     w = workspace.get_workspace(args.workspace_id)
     e = w.get_experiment(args.experiment_id)
-    tasks = [task for task in e.get_tasks() if task.finished]
+    # tasks = [task for task in e.get_tasks() if task.finished]
+    [task for task in e.get_tasks() if task.finished]
 
-    if args.task_filter is not None:
-        filter_ = _fetch_filter(args.task_filter)
-        if filter_ is not None:
-            tasks = [t for t in tasks if filter_(t)]
-
-    if len(tasks) == 0:
-        print('No finished task has been found.')
-        return
-
-    if args.group_by is not None:
-        group_by = args.group_by.split(',')
-    else:
-        group_by = None
+    # if args.task_filter is not None:
+    #     filter_ = _fetch_filter(args.task_filter)
+    #     if filter_ is not None:
+    #         tasks = [t for t in tasks if filter_(t)]
+    #
+    # if len(tasks) == 0:
+    #     print('No finished task has been found.')
+    #     return
+    #
+    # if args.group_by is not None:
+    #     group_by = args.group_by.split(',')
+    # else:
+    #     group_by = None
 
     # import matplotlib.pyplot as plt
     # plt.style.use('nice')

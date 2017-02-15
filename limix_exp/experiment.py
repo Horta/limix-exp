@@ -56,7 +56,7 @@ class Experiment(object):
                 clusterrun.load(ri).kill()
                 clusterrun.rm(ri)
             else:
-                self._logger.warn('Cluster run %s does not exist.' % ri)
+                self._logger.warn('Cluster run %s does not exist.', ri)
 
     @property
     def job_memory(self):
