@@ -356,8 +356,13 @@ class Experiment(object):
         failed_jobids = [d['jobid'] for d in data if d['status'] == 'failed']
         for d in data:
             if d['resource_info'] is not None:
-                max_memories += [r['max_memory'] for r in d['resource_info'] if r['max_memory'] is not None]
-                req_memories += [r['req_memory'] for r in d['resource_info'] if r['req_memory'] is not None]
+                dri = d['resource_info']
+
+                if dri['max_memory'] is not None:
+                    max_memories +=  [dri['max_memory']]
+
+                if dri['req_memory'] is not None:
+                    req_memories += [dri['req_memory']]
 
         if len(max_memories) > 0:
             max_memory = max(max_memories)
