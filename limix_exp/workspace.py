@@ -10,6 +10,7 @@ from os.path import basename, exists, isdir, join, splitext
 
 import limix_lsf
 
+from tqdm import tqdm
 from . import experiment
 from ._elapsed import BeginEnd
 from ._inspect import fetch_classes, fetch_functions
@@ -37,12 +38,6 @@ def get_experiment(workspace_id, experiment_id):
                         (experiment_id, workspace_id))
 
     return e
-
-
-def exists(workspace_id):
-    folder = join(conf.get('default', 'base_dir'), workspace_id)
-    return exists(folder)
-
 
 def get_workspace_ids():
     files = listdir(conf.get('default', 'base_dir'))
