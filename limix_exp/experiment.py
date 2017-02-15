@@ -80,12 +80,12 @@ class Experiment(object):
     def get_task(self, task_id):
         return self._get_tasks()[task_id]
 
-    @cachedmethod(attrgetter('_cache'))
+    # @cachedmethod(attrgetter('_cache'))
     def _get_task_results(self):
         fpath = join(self.folder, 'result')
         return task.collect_task_results(fpath, force_cache=False)
 
-    @cachedmethod(attrgetter('_cache'))
+    # @cachedmethod(attrgetter('_cache'))
     def get_task_results(self):
         return list(self._get_task_results().values())
 
@@ -110,7 +110,7 @@ class Experiment(object):
     def split_folder(self, jobid):
         return str(int(jobid / 1000))
 
-    @cachedmethod(attrgetter('_cache'))
+    # @cachedmethod(attrgetter('_cache'))
     def _get_tasks(self):
         fpath = join(self.folder, 'tasks.pkl')
         return task.load_tasks(fpath)
@@ -222,11 +222,11 @@ class Experiment(object):
 
         self.finish_setup_done = True
 
-    @cachedmethod(attrgetter('_cache'))
+    # @cachedmethod(attrgetter('_cache'))
     def get_job(self, jobid):
         return load_job(self.job_path(jobid))
 
-    @cachedmethod(attrgetter('_cache'))
+    # @cachedmethod(attrgetter('_cache'))
     def get_jobs(self):
         folder = join(self.folder, 'job')
         jobs = collect_jobs(folder)
