@@ -353,7 +353,7 @@ class Experiment(object):
         table.append(['# failed jobs', str(nfail)])
 
         max_memories = [
-            r['max_memory'] for r in d['resource_info'] for d in data
+            r['max_memory'] for d in data for r in d['resource_info']
             if r is not None and r['max_memory'] is not None
         ]
 
@@ -363,7 +363,7 @@ class Experiment(object):
             max_memory = None
 
         req_memories = [
-            r['req_memory'] for r in d['resource_info'] for d in data
+            r['req_memory'] for d in data for r in d['resource_info']
             if r is not None and r['req_memory'] is not None
         ]
 
