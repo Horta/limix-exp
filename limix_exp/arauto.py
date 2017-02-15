@@ -80,7 +80,7 @@ def do_rjob(args):
     if args.debug:
         import pdb; pdb.set_trace()
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
-    e.run_job(args.job, args.progress, args.dryrun, force=args.force)
+    e.run_job(args.job, args.dryrun, force=args.force)
 
 def do_rm_exp(args):
     w = workspace.get_workspace(args.workspace_id)
@@ -175,11 +175,9 @@ def parse_rjob(args):
     p.add_argument('--no-debug', dest='debug', action='store_false')
     p.add_argument('--dryrun', dest='dryrun', action='store_true')
     p.add_argument('--no-dryrun', dest='dryrun', action='store_false')
-    p.add_argument('--progress', dest='progress', action='store_true')
-    p.add_argument('--no-progress', dest='progress', action='store_false')
     p.add_argument('--force', dest='force', action='store_true')
     p.add_argument('--no-force', dest='force', action='store_false')
-    p.set_defaults(dryrun=False, progress=True, force=False, debug=False)
+    p.set_defaults(dryrun=False, force=False, debug=False)
 
     args = p.parse_args(args)
     do_rjob(args)

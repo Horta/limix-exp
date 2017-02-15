@@ -169,14 +169,14 @@ class Experiment(object):
         fpath = join(self.folder, 'task_args.pkl')
         task.store_task_args(task_args, fpath)
 
-    def run_job(self, jobid, progress=True, dryrun=False, force=False):
+    def run_job(self, jobid, dryrun=False, force=False):
         job_ = load_job(self.job_path(jobid))
 
         if job_.finished and not force:
             print("Job %d has already finished." % jobid)
             return
 
-        task_results = job_.run(progress)
+        task_results = job_.run()
 
         if not dryrun:
             store_job(job_, self.job_path(job_.jobid))
@@ -272,7 +272,6 @@ class Experiment(object):
                 a += ['--dryrun']
             else:
                 a += ['--no-dryrun']
-            a += ['--no-progress']
             cmd.add(a)
 
         self.runid = cmd.run(dryrun=dryrun)
