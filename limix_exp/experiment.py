@@ -20,10 +20,9 @@ from .job import Job, collect_jobs, load_job, store_job
 
 class Experiment(object):
     def __init__(self, workspace_id, experiment_id, properties):
-        super(Experiment, self).__init__()
+        self._cache_get_task_results = LRUCache(maxsize=1)
         self._workspace_id = workspace_id
         self._experiment_id = experiment_id
-        self._cache = LRUCache(maxsize=8)
 
         self.script_filepath = None
         self._task_id_counter = -1
@@ -80,7 +79,7 @@ class Experiment(object):
     def get_task(self, task_id):
         return self._get_tasks()[task_id]
 
-    # @cachedmethod(attrgetter('_cache'))
+    @cachedmethod(attrgetter('_cache_get_task_results'))
     def _get_task_results(self):
         fpath = join(self.folder, 'result')
         return task.collect_task_results(fpath, force_cache=False)

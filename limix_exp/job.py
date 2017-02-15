@@ -1,11 +1,9 @@
 import os
+from operator import attrgetter
 
 import numpy as np
 
-from cachetools import LRUCache
-from operator import attrgetter
-from cachetools import cachedmethod
-
+from cachetools import LRUCache, cachedmethod
 from limix_lsf import clusterrun
 from pickle_blosc import pickle, unpickle
 from tqdm import tqdm
@@ -18,10 +16,10 @@ from ._timer import Timer
 class Job(object):
     def __init__(self, workspace_id, experiment_id, jobid):
         super(Job, self).__init__()
+        self._cache = LRUCache(maxsize=1)
         self.jobid = int(jobid)
         self._workspace_id = workspace_id
         self._experiment_id = experiment_id
-        self._cache = LRUCache(maxsize=1)
         self.finished = False
         self.submitted = False
         self.bjobid = None
