@@ -11,7 +11,6 @@ from os.path import basename, exists, isdir, join, splitext
 import limix_lsf
 from tqdm import tqdm
 
-from tqdm import tqdm
 from . import experiment
 from ._elapsed import BeginEnd
 from ._inspect import fetch_classes, fetch_functions
@@ -40,6 +39,12 @@ def get_experiment(workspace_id, experiment_id):
 
     return e
 
+
+def exists(workspace_id):
+    folder = join(conf.get('default', 'base_dir'), workspace_id)
+    return exists(folder)
+
+
 def get_workspace_ids():
     files = listdir(conf.get('default', 'base_dir'))
     return [f for f in files if isdir(f)]
@@ -59,6 +64,14 @@ class Workspace(object):
         e = self.get_experiment(experiment_id)
         e.kill_bjobs()
         if exists(e.folder):
+            for (dir_, _, files) in walk(e.folder):
+                if dir_ == e.folder:
+                    continue
+                for f in files:
+                    fpath = join(dir_, f)
+                    if fpath.endswith('pkl') and basename(fpath) != 'all.pkl':
+                        file_list.append(fpath)
+
             folders = [isdir(sf) for sf in listdir(e.folder)]
             desc = "Removing folder %s" % e.folder
             for f in tqdm(folders, desc=desc):
