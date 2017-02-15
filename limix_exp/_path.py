@@ -7,12 +7,14 @@ import shutil
 import subprocess
 import tempfile
 from distutils.spawn import find_executable
-from os import makedirs, utime
+from os import makedirs, utime, system
 from os.path import basename
 from sys import stderr
 
 from ._elapsed import BeginEnd
 
+def rmtree(folder):
+    system("rm -rf %s" % folder)
 
 @contextlib.contextmanager
 def temp_folder():
@@ -20,8 +22,7 @@ def temp_folder():
     try:
         yield folder
     finally:
-        shutil.rmtree(folder)
-
+        rmtree(folder)
 
 def make_sure_path_exists(path):
     """Creates a path recursively if necessary.

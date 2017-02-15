@@ -13,6 +13,7 @@ import limix_lsf
 from . import experiment
 from ._elapsed import BeginEnd
 from ._inspect import fetch_classes, fetch_functions
+from ._path import rmtree
 from .config import conf
 
 _workspaces = dict()
@@ -63,7 +64,7 @@ class Workspace(object):
         e.kill_bjobs()
         if os.path.exists(e.folder):
             with BeginEnd("Removing folder %s" % e.folder):
-                shutil.rmtree(e.folder)
+                rmtree(e.folder)
 
     def get_properties(self):
         try:
@@ -166,11 +167,11 @@ class Workspace(object):
             try:
                 exp.submit_jobs(args.dryrun, queue=args.queue)
             except KeyboardInterrupt:
-                shutil.rmtree(exp.folder)
+                rmtree(exp.folder)
                 raise
 
             if args.dryrun:
-                shutil.rmtree(exp.folder)
+                rmtree(exp.folder)
 
     def remove(self, experiment_id, jobs_too=False):
         if experiment_id is None:
@@ -181,7 +182,7 @@ class Workspace(object):
             return
         folder = join(self.folder, experiment_id)
         with BeginEnd("Removing folder %s" % folder):
-            shutil.rmtree(folder)
+            rmtree(folder)
 
         if jobs_too:
             bgroup = '/%s/%s' % (self._workspace_id, experiment_id)
