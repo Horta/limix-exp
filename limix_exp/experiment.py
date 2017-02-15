@@ -350,20 +350,23 @@ class Experiment(object):
         table.append(['# finished jobs', str(nfin)])
         table.append(['# failed jobs', str(nfail)])
 
-        max_memories = [
-            r['max_memory'] for d in data for r in d['resource_info']
-            if r is not None and r['max_memory'] is not None
-        ]
+        max_memories = []
+        req_memories = []
+        failed_jobids = [d['jobid'] for d in data if d['status'] == 'failed']
+        for d in data:
+            if d['resource_info'] is not None:
+                dri = d['resource_info']
+
+                if dri['max_memory'] is not None:
+                    max_memories +=  [dri['max_memory']]
+
+                if dri['req_memory'] is not None:
+                    req_memories += [dri['req_memory']]
 
         if len(max_memories) > 0:
             max_memory = max(max_memories)
         else:
             max_memory = None
-
-        req_memories = [
-            r['req_memory'] for d in data for r in d['resource_info']
-            if r is not None and r['req_memory'] is not None
-        ]
 
         if len(req_memories) > 0:
             req_memory = max(req_memories)
@@ -383,11 +386,6 @@ class Experiment(object):
         msg = tabulate(table)
 
         if nfail > 0:
-            failed_jobids = [
-                d['jobid'] for d in data
-                if r is not None and r['status'] == 'failed'
-            ]
-
             msg += '\nFailed jobs: ' + str(failed_jobids)
             msg += '\n'
 
