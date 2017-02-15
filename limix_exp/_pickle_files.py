@@ -25,8 +25,7 @@ def pickle_merge(folder):
     subfolders = [d for d in listdir(folder) if isdir(join(folder, d))]
 
     with temp_folder() as tf:
-        desc = 'Copying files' % _summarize(folder, 16)
-        for sf in tqdm(subfolders, desc=desc):
+        for sf in tqdm(subfolders, desc='Copying files'):
             make_sure_path_exists(join(tf, sf))
             cp(join(folder, sf), join(tf, sf))
 
