@@ -9,6 +9,7 @@ from os import listdir, system
 from os.path import basename, exists, isdir, join, splitext
 
 import limix_lsf
+from tqdm import tqdm
 
 from . import experiment
 from ._elapsed import BeginEnd
