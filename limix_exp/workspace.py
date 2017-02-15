@@ -53,6 +53,7 @@ def get_workspace_ids():
 class Workspace(object):
     def __init__(self, workspace_id):
         super(Workspace, self).__init__()
+        self._auto_runs_map = dict()
         self._workspace_id = workspace_id
         self._script_filepath = None
         self._experiments = dict()
@@ -112,10 +113,9 @@ class Workspace(object):
         return join(conf.get('default', 'base_dir'), self._workspace_id)
 
     def _get_auto_run(self, experiment_id):
-        auto_runs_map = self._get_auto_runs_map()
-        # if experiment_id not in auto_runs_map:
-        # return None
-        return auto_runs_map[experiment_id]
+        if experiment_id not in self._auto_runs_map:
+            self._auto_runs_map[experiment_id] = self._get_auto_runs_map()
+        return self._auto_runs_map[experiment_id]
 
     def get_experiment(self, experiment_id):
         if experiment_id not in self._experiments:
