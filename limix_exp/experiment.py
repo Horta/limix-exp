@@ -324,7 +324,7 @@ class Experiment(Cached):
 
         jobs = list(self.get_jobs())
 
-        results = []
+        data = []
         size = int(ceil(len(jobs) / 100))
         niters = int(ceil(len(jobs) / size))
         for i in tqdm(range(niters), 'Getting jobs'):
@@ -332,40 +332,49 @@ class Experiment(Cached):
             right = min((i + 1) * size, len(jobs))
             jslice = jobs[left:right]
             r = map(_get_job_info, jslice)
-            results += list(r)
+            data += list(r)
 
+        nfin = sum(r['status'] == 'finished' for r in data)
+        nfail = sum(r['status'] == 'failed' for r in data)
+        npend = sum(r['status'] == 'pending' for r in data)
+        nrun = sum(r['status'] == 'running' for r in data)
+        nunk = sum(r['status'] == 'unknown' for r in data)
+        nwait = sum(r['status'] == 'waiting' for r in data)
+
+        nsub = nfin + nfail + npend + nrun + nunk
+
+        table.append(['# waiting jobs', str(nwat)])
         table.append(['# submitted jobs', str(nsub)])
-
         table.append(['# pending jobs', str(npend)])
-
         table.append(['# running jobs', str(nrun)])
-
-        nfin = len(bjobs_finished)
         table.append(['# finished jobs', str(nfin)])
-
-        nfail = len(failed_jobids)
         table.append(['# failed jobs', str(nfail)])
 
         max_memories = [
-            r['max_memory'] for r in resource_info
+            r['max_memory'] for r in d['resource_info'] for d in data
             if r is not None and r['max_memory'] is not None
         ]
+
         if len(max_memories) > 0:
             max_memory = max(max_memories)
         else:
             max_memory = None
+
         req_memories = [
-            r['req_memory'] for r in resource_info
+            r['req_memory'] for r in d['resource_info'] for d in data
             if r is not None and r['req_memory'] is not None
         ]
+
         if len(req_memories) > 0:
             req_memory = max(req_memories)
         else:
             req_memory = None
+
         table.append([
             'max used memory', format_size(max_memory)
             if max_memory is not None else 'n/a'
         ])
+
         table.append([
             'max req. memory', format_size(req_memory)
             if req_memory is not None else 'n/a'
