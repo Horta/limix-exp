@@ -16,7 +16,8 @@ def setup_package():
     setup_requires = [] + pytest_runner
     install_requires = [
         'pytest', 'scipy>=0.17', 'numpy>=1.9', 'tabulate', 'humanfriendly',
-        'pickle-mixin', 'pickle-blosc', 'limix-lsf', 'joblib', 'tqdm'
+        'pickle-mixin', 'pickle-blosc', 'limix-lsf', 'joblib', 'tqdm',
+        'cachetools>=2.0.0'
     ]
     tests_require = ['pytest']
 

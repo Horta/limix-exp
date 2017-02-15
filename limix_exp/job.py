@@ -2,7 +2,10 @@ import os
 
 import numpy as np
 
-from hcache import Cached, cached
+from cachetools import LRUCache
+from operator import attrgetter
+from cachetools import cachedmethod
+
 from limix_lsf import clusterrun
 from pickle_blosc import pickle, unpickle
 from tqdm import tqdm
@@ -12,12 +15,13 @@ from ._pickle_files import pickle_merge
 from ._timer import Timer
 
 
-class Job(Cached):
+class Job(object):
     def __init__(self, workspace_id, experiment_id, jobid):
         super(Job, self).__init__()
         self.jobid = int(jobid)
         self._workspace_id = workspace_id
         self._experiment_id = experiment_id
+        self._cache = LRUCache(maxsize=1)
         self.finished = False
         self.submitted = False
         self.bjobid = None
@@ -31,7 +35,7 @@ class Job(Cached):
             return (stats is not None and stats != 0)
         return False
 
-    @cached
+    @cachedmethod(attrgetter('_cache'))
     def get_bjob(self):
         bjob = clusterrun.get_bjob(self.brunid, self.bjobid)
         return bjob

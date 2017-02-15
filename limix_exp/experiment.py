@@ -2,9 +2,10 @@ import logging
 import os
 import random
 from math import ceil
+from operator import attrgetter
 from os.path import dirname, join
 
-from hcache import Cached, cached
+from cachetools import LRUCache, cachedmethod
 from humanfriendly import format_size, parse_size
 from limix_lsf import clusterrun
 from limix_lsf.clusterrun import ClusterRun
@@ -12,16 +13,17 @@ from tabulate import tabulate
 from tqdm import tqdm
 
 from . import task
-from .job import collect_jobs, store_job, load_job, Job
 from ._path import make_sure_path_exists, touch
 from .config import conf
+from .job import Job, collect_jobs, load_job, store_job
 
 
-class Experiment(Cached):
+class Experiment(object):
     def __init__(self, workspace_id, experiment_id, properties):
         super(Experiment, self).__init__()
         self._workspace_id = workspace_id
         self._experiment_id = experiment_id
+        self._cache = LRUCache(maxsize=8)
 
         self.script_filepath = None
         self._task_id_counter = -1
@@ -78,12 +80,12 @@ class Experiment(Cached):
     def get_task(self, task_id):
         return self._get_tasks()[task_id]
 
-    @cached
+    @cachedmethod(attrgetter('_cache'))
     def _get_task_results(self):
         fpath = join(self.folder, 'result')
         return task.collect_task_results(fpath, force_cache=False)
 
-    @cached
+    @cachedmethod(attrgetter('_cache'))
     def get_task_results(self):
         return list(self._get_task_results().values())
 
@@ -108,7 +110,7 @@ class Experiment(Cached):
     def split_folder(self, jobid):
         return str(int(jobid / 1000))
 
-    @cached
+    @cachedmethod(attrgetter('_cache'))
     def _get_tasks(self):
         fpath = join(self.folder, 'tasks.pkl')
         return task.load_tasks(fpath)
@@ -220,11 +222,11 @@ class Experiment(Cached):
 
         self.finish_setup_done = True
 
-    @cached
+    @cachedmethod(attrgetter('_cache'))
     def get_job(self, jobid):
         return load_job(self.job_path(jobid))
 
-    @cached
+    @cachedmethod(attrgetter('_cache'))
     def get_jobs(self):
         folder = join(self.folder, 'job')
         jobs = collect_jobs(folder)
@@ -400,6 +402,7 @@ def _namespace2task(workspace_id, experiment_id, n):
     for (k, v) in list(n.items()):
         setattr(t, k, v)
     return t
+
 
 def _get_job_info(j):
     d = dict(status=None, bjob=None, jobid=-1, resource_info=None)
