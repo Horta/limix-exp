@@ -343,7 +343,7 @@ class Experiment(Cached):
 
         nsub = nfin + nfail + npend + nrun + nunk
 
-        table.append(['# waiting jobs', str(nwat)])
+        table.append(['# waiting jobs', str(nwait)])
         table.append(['# submitted jobs', str(nsub)])
         table.append(['# pending jobs', str(npend)])
         table.append(['# running jobs', str(nrun)])
