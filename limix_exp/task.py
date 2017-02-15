@@ -3,6 +3,7 @@ import os
 from pickle_blosc import pickle, unpickle
 from pickle_mixin import PickleByName, SlotPickleMixin
 from tabulate import tabulate
+from cachetools import cached
 
 from ._elapsed import BeginEnd
 from ._path import folder_hash
@@ -112,19 +113,11 @@ class TaskResult(SlotPickleMixin):
     def _add_method(self, method):
         self._methods.add(method)
 
-
-def load_tasks(fpath, verbose=False):
-    if os.path.exists(fpath):
-        if verbose:
-            print("Exist %s" % fpath)
-    else:
-        print("Does not exist %s" % fpath)
+@cached(cache={})
+def load_tasks(fpath):
     with BeginEnd('Loading tasks'):
         tasks = unpickle(fpath)
-    if verbose:
-        print('   %d tasks found  ' % len(tasks))
     return tasks
-
 
 def store_tasks(tasks, fpath):
     if os.path.exists(fpath):
