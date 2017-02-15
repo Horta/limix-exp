@@ -2,11 +2,11 @@ import imp
 import inspect
 import json
 import logging
-import os
 import re
 import shutil
 from argparse import ArgumentParser
-from os.path import join
+from os import listdir, system
+from os.path import basename, exists, isdir, join, splitext
 
 import limix_lsf
 
@@ -41,12 +41,12 @@ def get_experiment(workspace_id, experiment_id):
 
 def exists(workspace_id):
     folder = join(conf.get('default', 'base_dir'), workspace_id)
-    return os.path.exists(folder)
+    return exists(folder)
 
 
 def get_workspace_ids():
-    files = os.listdir(conf.get('default', 'base_dir'))
-    return [f for f in files if os.path.isdir(f)]
+    files = listdir(conf.get('default', 'base_dir'))
+    return [f for f in files if isdir(f)]
 
 
 class Workspace(object):
@@ -62,9 +62,12 @@ class Workspace(object):
     def rm_experiment(self, experiment_id):
         e = self.get_experiment(experiment_id)
         e.kill_bjobs()
-        if os.path.exists(e.folder):
-            with BeginEnd("Removing folder %s" % e.folder):
-                rmtree(e.folder)
+        if exists(e.folder):
+            folders = [isdir(sf) for sf in listdir(e.folder)]
+            desc = "Removing folder %s" % e.folder
+            for f in tqdm(folders, desc=desc):
+                rmtree(f)
+            rmtree(e.folder)
 
     def get_properties(self):
         try:
@@ -75,7 +78,7 @@ class Workspace(object):
             print("File: %s", join(self.folder, 'properties.json'))
             print('File content:')
             print(open(join(self.folder, 'properties.json')).read())
-            os.system("hostname")
+            system("hostname")
 
     def get_plot_class(self, name):
         return self._get_plot_classes_map()[name]
@@ -132,11 +135,11 @@ class Workspace(object):
 
     @property
     def dataset_folder(self):
-        return os.path.join(self.folder, 'dataset')
+        return join(self.folder, 'dataset')
 
     def _auto_run_filepaths(self):
         f = join(self.folder, 'auto_run.json')
-        if not os.path.exists(f):
+        if not exists(f):
             self._logger.warn("File %s does not exist.", f)
             return []
         with open(f) as json_file:
@@ -199,8 +202,8 @@ class Workspace(object):
         exp.start(check_existence=False)
 
     def _get_generate_tasks(self, script_filepath, experiment_id=None):
-        script_name = os.path.basename(script_filepath)
-        mod_name = os.path.splitext(script_name)[0]
+        script_name = basename(script_filepath)
+        mod_name = splitext(script_name)[0]
         mod = imp.load_source(mod_name, script_filepath)
 
         lista = []
@@ -219,11 +222,11 @@ class Workspace(object):
     def __str__(self):
         from tabulate import tabulate
 
-        files = os.listdir(self.folder)
+        files = listdir(self.folder)
         exp_ids = [
             f for f in files
-            if (os.path.isdir(join(self.folder, f)) and join(
-                self.folder, f, 'generate_tasks.txt'))
+            if (isdir(join(self.folder, f)) and join(self.folder, f,
+                                                     'generate_tasks.txt'))
         ]
 
         auto_run_err = set()
@@ -263,8 +266,8 @@ class Workspace(object):
 
 
 def _get_auto_runs_map(script_filepath):
-    script_name = os.path.basename(script_filepath)
-    mod_name = os.path.splitext(script_name)[0]
+    script_name = basename(script_filepath)
+    mod_name = splitext(script_name)[0]
     mod = imp.load_source(mod_name, script_filepath)
 
     auto_run_map = dict()
