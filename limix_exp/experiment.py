@@ -383,6 +383,11 @@ class Experiment(Cached):
         msg = tabulate(table)
 
         if nfail > 0:
+            failed_jobids = [
+                d['jobid'] for d in data
+                if r is not None and r['status'] == 'failed'
+            ]
+
             msg += '\nFailed jobs: ' + str(failed_jobids)
             msg += '\n'
 

@@ -41,28 +41,21 @@ def do_see(args, rargs):
     else:
         group_by = None
 
-    import matplotlib.pyplot as plt
-    plt.style.use('nice')
-    if args.figsize is None:
-        fig = plt.figure()
-    else:
-        figsize = (float(s) for s in args.figsize.split(','))
-        fig = plt.figure(figsize=figsize)
-
-    properties = w.get_properties()
-    plot_cls = w.get_plot_class(args.plot_class_name)
-    p = plot_cls(args.workspace_id, args.experiment_id, properties, tasks,
-                 rargs, fig=fig)
-    p.group_by = group_by
-    p.grid = args.grid
-    p.plot()
-
-    if args.outfile is None:
-        from limix_plot.show import show
-        show(fig)
-    else:
-        from limix_plot.savefig import savefig
-        savefig(args.outfile, fig)
+    # import matplotlib.pyplot as plt
+    # plt.style.use('nice')
+    # if args.figsize is None:
+    #     fig = plt.figure()
+    # else:
+    #     figsize = (float(s) for s in args.figsize.split(','))
+    #     fig = plt.figure(figsize=figsize)
+    #
+    # properties = w.get_properties()
+    # plot_cls = w.get_plot_class(args.plot_class_name)
+    # p = plot_cls(args.workspace_id, args.experiment_id, properties, tasks,
+    #              rargs, fig=fig)
+    # p.group_by = group_by
+    # p.grid = args.grid
+    # p.plot()
 
 def do_jinfo(args):
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
@@ -84,7 +77,7 @@ def do_jinfo(args):
 
 def do_rjob(args):
     if args.debug:
-        import ipdb; ipdb.set_trace()
+        import pdb; pdb.set_trace()
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
     e.run_job(args.job, args.progress, args.dryrun, force=args.force)
 

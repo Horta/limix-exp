@@ -5,6 +5,7 @@ import numpy as np
 from hcache import Cached, cached
 from limix_lsf import clusterrun
 from pickle_blosc import pickle, unpickle
+from tqdm import tqdm
 
 from ._path import folder_hash
 from ._pickle_files import pickle_merge
@@ -57,23 +58,15 @@ class Job(Cached):
         tasks = e.get_tasks()
         return [tasks[tid] for tid in task_ids]
 
-    def run(self, progress):
+    def run(self):
         tasks = self.get_tasks()
         task_results = []
 
-        if progress:
-            p = ProgressBar(len(tasks))
-
-        for (i, task) in enumerate(tasks):
+        for task in tqdm(tasks):
             with Timer() as timer:
                 tr = task.run()
             tr.total_elapsed = timer.elapsed
-            if progress:
-                p.update(i + 1)
             task_results.append(tr)
-
-        if progress:
-            p.finish()
 
         self.finished = True
 

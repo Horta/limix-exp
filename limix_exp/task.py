@@ -204,8 +204,9 @@ def _isfloat(value):
 
 
 def _summarize(s, n=64):
+    from math import ceil
     assert n > 6
     s = str(s)
     if len(s) < n:
         return s
-    return s[:int(n / 2) - 2] + ' ... ' + s[-int(math.ceil(n / 2)) + 3:]
+    return s[:int(n / 2) - 2] + ' ... ' + s[-int(ceil(n / 2)) + 3:]

@@ -7,7 +7,7 @@ from .task import TaskResult
 
 try:
     __version__ = _get_distribution('limix_exp').version
-except _DistributionNotFound:
+except (_DistributionNotFound, AttributeError):
     __version__ = 'unknown'
 
 def test():
