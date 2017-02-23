@@ -21,22 +21,21 @@ def _fetch_filter(fp_or_code):
 def do_root():
     print(conf.get('default', 'base_dir'))
 
-def do_see(args, _):
+def do_save(args, _):
 
     w = workspace.get_workspace(args.workspace_id)
     e = w.get_experiment(args.experiment_id)
-    # tasks = [task for task in e.get_tasks() if task.finished]
-    [task for task in e.get_tasks() if task.finished]
+    tasks = [task for task in e.get_tasks() if task.finished]
 
-    # if args.task_filter is not None:
-    #     filter_ = _fetch_filter(args.task_filter)
-    #     if filter_ is not None:
-    #         tasks = [t for t in tasks if filter_(t)]
-    #
-    # if len(tasks) == 0:
-    #     print('No finished task has been found.')
-    #     return
-    #
+    if args.task_filter is not None:
+        filter_ = _fetch_filter(args.task_filter)
+        if filter_ is not None:
+            tasks = [t for t in tasks if filter_(t)]
+
+    if len(tasks) == 0:
+        print('No finished task has been found.')
+        return
+
     # if args.group_by is not None:
     #     group_by = args.group_by.split(',')
     # else:
@@ -51,7 +50,9 @@ def do_see(args, _):
     #     fig = plt.figure(figsize=figsize)
     #
     # properties = w.get_properties()
-    # plot_cls = w.get_plot_class(args.plot_class_name)
+    import pdb; pdb.set_trace()
+    save_function_name = w.get_save_function(args.save_function_name)
+    save_function_name(tasks, 'ola')
     # p = plot_cls(args.workspace_id, args.experiment_id, properties, tasks,
     #              rargs, fig=fig)
     # p.group_by = group_by
@@ -182,22 +183,16 @@ def parse_rjob(args):
     args = p.parse_args(args)
     do_rjob(args)
 
-def parse_see(args):
+def parse_save(args):
     p = ArgumentParser()
     p.add_argument('workspace_id')
     p.add_argument('experiment_id')
-    p.add_argument('plot_class_name')
-    p.add_argument('--outfile', '-o', dest='outfile', default=None)
-    p.add_argument('--style', default='nice')
-    p.add_argument('--figsize', default=None)
+    p.add_argument('outfile', default='outfile.pkl')
     p.add_argument('--group_by', default=None)
     p.add_argument('--task_filter', default=None)
-    p.add_argument('--grid', dest='grid', action='store_true')
-    p.add_argument('--no-grid', dest='grid', action='store_false')
-    p.set_defaults(grid=True)
 
     args, rargs = p.parse_known_args(args)
-    do_see(args, rargs)
+    do_save(args, rargs)
 
 def parse_winfo(args):
     p = ArgumentParser()
@@ -246,8 +241,8 @@ def entry_point():
     s = sub.add_parser('jinfo')
     s.set_defaults(func=parse_jinfo)
 
-    s = sub.add_parser('see')
-    s.set_defaults(func=parse_see)
+    s = sub.add_parser('save')
+    s.set_defaults(func=parse_save)
 
     args, rargs = p.parse_known_args()
 

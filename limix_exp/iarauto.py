@@ -10,8 +10,8 @@ class IArauto(cmd.Cmd):
     def do_root(self, _):
         arauto.do_root()
 
-    def do_see(self, cmdline):
-        arauto.parse_see(shlex.split(cmdline))
+    def do_save(self, cmdline):
+        arauto.parse_save(shlex.split(cmdline))
 
     def do_jinfo(self, cmdline):
         arauto.parse_jinfo(shlex.split(cmdline))

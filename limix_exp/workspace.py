@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from . import experiment
 from ._elapsed import BeginEnd
-from ._inspect import fetch_classes, fetch_functions
+from ._inspect import fetch_functions
 from ._path import rmtree
 from .config import conf
 
@@ -91,23 +91,25 @@ class Workspace(object):
             print(open(join(self.folder, 'properties.json')).read())
             system("hostname")
 
-    def get_plot_class(self, name):
-        return self._get_plot_classes_map()[name]
+    def get_save_function(self, name):
+        return self._get_save_functions_map()[name]
 
-    def _get_plot_classes_map(self):
-        f = join(self.folder, 'plot.json')
-        self._logger.info("Reading plot config file %s.", f)
+    def _get_save_functions_map(self):
+        import pdb; pdb.set_trace()
+        f = join(self.folder, 'save.json')
+        self._logger.info("Reading save config file %s.", f)
         with open(f) as json_file:
             fpaths = json.load(json_file)
             fpaths = [str(fpath) for fpath in fpaths]
 
-        plot_classes_map = dict()
+        save_functions_map = dict()
         for fp in fpaths:
             self._logger.info("Reading file %s.", fp)
-            clss = fetch_classes(fp, '.*Plot')
-            for clsi in clss:
-                plot_classes_map[clsi.__name__] = clsi
-        return plot_classes_map
+            funcs = fetch_functions(fp)
+            # clss = fetch_classes(fp, '.*Plot')
+            for func in funcs:
+                save_functions_map[func.__name__] = func
+        return save_functions_map
 
     @property
     def folder(self):
