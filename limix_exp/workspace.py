@@ -95,18 +95,16 @@ class Workspace(object):
         return self._get_save_functions_map()[name]
 
     def _get_save_functions_map(self):
-        import pdb; pdb.set_trace()
         f = join(self.folder, 'save.json')
-        self._logger.info("Reading save config file %s.", f)
+        self._logger.debug("Reading save config file %s.", f)
         with open(f) as json_file:
             fpaths = json.load(json_file)
             fpaths = [str(fpath) for fpath in fpaths]
 
         save_functions_map = dict()
         for fp in fpaths:
-            self._logger.info("Reading file %s.", fp)
-            funcs = fetch_functions(fp)
-            # clss = fetch_classes(fp, '.*Plot')
+            self._logger.debug("Reading file %s.", fp)
+            funcs = fetch_functions(fp, 'save_.*')
             for func in funcs:
                 save_functions_map[func.__name__] = func
         return save_functions_map
@@ -138,7 +136,7 @@ class Workspace(object):
     def _load_auto_runs(self):
         fps = self._auto_run_filepaths()
         for fp in fps:
-            self._logger.info("Reading file %s.", fp)
+            self._logger.debug("Reading file %s.", fp)
             funcs = fetch_functions(fp, r'^auto_run_.+$')
             self._auto_runs_map.update([(f.__name__[9:], f) for f in funcs])
         return self._auto_runs_map
