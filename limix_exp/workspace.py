@@ -5,7 +5,7 @@ import logging
 import re
 import shutil
 from argparse import ArgumentParser
-from os import listdir, system
+from os import listdir, system, walk
 from os.path import basename, isdir, join, splitext
 from os.path import exists as _exists
 
