@@ -65,20 +65,17 @@ class Workspace(object):
     def rm_experiment(self, experiment_id):
         e = self.get_experiment(experiment_id)
         e.kill_bjobs()
-        if _exists(e.folder):
-            for (dir_, _, files) in walk(e.folder):
-                if dir_ == e.folder:
-                    continue
-                for f in files:
-                    fpath = join(dir_, f)
-                    if fpath.endswith('pkl') and basename(fpath) != 'all.pkl':
-                        file_list.append(fpath)
 
-            folders = [isdir(sf) for sf in listdir(e.folder)]
-            desc = "Removing folder %s" % e.folder
-            for f in tqdm(folders, desc=desc):
-                rmtree(f)
-            rmtree(e.folder)
+        if not _exists(e.folder):
+            return
+
+        folders = []
+        for (d, _, _) in walk(e.folder):
+            folders.insert(0, d)
+
+        desc = "Removing folder %s" % e.folder
+        for f in tqdm(reversed(folders), desc=desc):
+            rmtree(f)
 
     def get_properties(self):
         try:
