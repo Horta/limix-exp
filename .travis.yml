@@ -20,9 +20,11 @@ notifications:
   email: false
 deploy:
   provider: pypi
+  skip_upload_docs: true
+  skip_cleanup: true
   user: dhorta
   password:
     secure: gAoldcJqRpgRdK4a3N35OkYAr8zLRcH0ucH1CfYa2RYmjwOx4NRAq2rbnZJOyoSb+1vPTuDUlve/5Aej8KFt99o+eWAktJKgUeOi54uRvfwT4M/0Awem9CP+PWt187i6fcs2rolatEhr5BcP8yW6/6h2Bg+iwmLpr4oeWg9bTgQW16AmOAiQ72TwjMMoxbLa3sPMxGbzZyX5GbXPQWBjwW5UTmekxRWD+hoLW5/r3/ZbsQ5UGBxcleRjYZxJM0XKoTs4iAGQQk6TCW5bwr8rPbg9XfBv+FgoRH/QEeFPBNDm+sUFiDK0kHIcQtPumwq+jLzCzY3CrEyZMFwLevpOrOhpHLdA8OV3+PZ9HXPVaGqDO3NYuVnsOrIH/cWjuU+27QPaJL92NcGI4liiHnBvNsXlFj0BTfBzKGd8NjSuSJ8JK5dBcciKHNQKirZx1iT9eQ8xliHO5jEAqZ7hjNn0D9hG3eQKlpyeJXOcQeHyAU5P9bR4c9GAWkJ4tEEidquTJxhBHIh8OusYqiCFklmNN12Ls0PWBDPrG5L08u62ocXQ086xFzgUoCU7HAXQUEgQeuGOvdOntm93ELQWMAylrc8nAYx61nn2GwRP/nK/bz+qJ7w9gIer1lFuc1w9gqgOg8GAIyEikQeLAM/W9vcjxSTnWfiGcZrAj92PymtzlV4=
   on:
-    distributions: sdist bdist_wheel
+    distributions: sdist
     repo: Horta/limix-exp
