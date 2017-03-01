@@ -21,8 +21,7 @@ def _fetch_filter(fp_or_code):
 def do_root():
     print(conf.get('default', 'base_dir'))
 
-def do_save(args, _):
-
+def do_save(args, rargs):
     w = workspace.get_workspace(args.workspace_id)
     e = w.get_experiment(args.experiment_id)
     tasks = [task for task in e.get_tasks() if task.finished]
@@ -36,28 +35,8 @@ def do_save(args, _):
         print('No finished task has been found.')
         return
 
-    # if args.group_by is not None:
-    #     group_by = args.group_by.split(',')
-    # else:
-    #     group_by = None
-
-    # import matplotlib.pyplot as plt
-    # plt.style.use('nice')
-    # if args.figsize is None:
-    #     fig = plt.figure()
-    # else:
-    #     figsize = (float(s) for s in args.figsize.split(','))
-    #     fig = plt.figure(figsize=figsize)
-    #
-    # properties = w.get_properties()
-    import pdb; pdb.set_trace()
     save_function_name = w.get_save_function(args.save_function_name)
-    save_function_name(tasks, 'ola')
-    # p = plot_cls(args.workspace_id, args.experiment_id, properties, tasks,
-    #              rargs, fig=fig)
-    # p.group_by = group_by
-    # p.grid = args.grid
-    # p.plot()
+    save_function_name(tasks, rargs)
 
 def do_jinfo(args):
     e = workspace.get_experiment(args.workspace_id, args.experiment_id)
@@ -187,7 +166,7 @@ def parse_save(args):
     p = ArgumentParser()
     p.add_argument('workspace_id')
     p.add_argument('experiment_id')
-    p.add_argument('outfile', default='outfile.pkl')
+    p.add_argument('save_function_name')
     p.add_argument('--group_by', default=None)
     p.add_argument('--task_filter', default=None)
 
